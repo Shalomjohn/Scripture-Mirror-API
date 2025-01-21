@@ -1,4 +1,5 @@
 const User = require('../models/user');
+const { sendOTPEmail } = require('../helpers/email_sender');
 
 exports.register = async (req, res) => {
   try {
@@ -71,3 +72,44 @@ exports.login = async (req, res) => {
       });
     }
   };
+
+
+exports.verifyEmail = async (req, res) => {
+  try {
+    let code = Math.floor(100000 + Math.random() * 900000);
+    const { email, isSignUp } = req.body;
+
+    if (isSignUp == "true" || isSignUp == true) {
+
+      const user = await User.findOne({ email });
+
+      if (user) {
+        return res.status(500).json({
+          status: "error",
+          message: "A user already exists with that email address",
+        });
+      }
+    }
+
+    await sendOTPEmail(email, code);
+
+    // Send the updated user back to the client
+    res.json({
+      message: 'Success',
+      code,
+    });
+  } catch (error) {
+    console.error(error);
+    if (error.isOperational) {
+      res.status(error.statusCode).json({
+        status: error.status,
+        message: error.message,
+      });
+    } else {
+      res.status(500).json({
+        status: 'error',
+        message: error.message,
+      });
+    }
+  }
+}
