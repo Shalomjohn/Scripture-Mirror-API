@@ -1,7 +1,7 @@
 var request = require('request');
 
 async function sendOTPEmail(email_address, code) {
-    BASE_URL = "https://api.ng.termii.com";
+    BASE_URL = "https://v3.api.termii.com";
     var data = {
         "api_key": process.env.TERMIL_API_KEY,
         "email_address": email_address,
