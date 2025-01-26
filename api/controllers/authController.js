@@ -1,5 +1,6 @@
 const User = require('../models/user');
 const { sendOTPEmail } = require('../helpers/email_sender');
+const EmailList = require('../models/email_list');
 
 exports.register = async (req, res) => {
   try {
@@ -74,7 +75,7 @@ exports.login = async (req, res) => {
   };
 
 
-exports.verifyEmail = async (req, res) => {
+exports.sendEmailOTP = async (req, res) => {
   try {
     let code = Math.floor(1000 + Math.random() * 9000);
     const { email, isSignUp } = req.body;
@@ -84,7 +85,7 @@ exports.verifyEmail = async (req, res) => {
       const user = await User.findOne({ email });
 
       if (user) {
-        return res.status(500).json({
+        return res.status(400).json({
           status: "error",
           message: "A user already exists with that email address",
         });
@@ -92,12 +93,53 @@ exports.verifyEmail = async (req, res) => {
     }
 
     await sendOTPEmail(email, code);
+    EmailList.create({ email, otp: code });
 
-    // Send the updated user back to the client
+    console.log(`OTP code: ${code}`);
+
     res.json({
-      message: 'Success',
-      code,
+      message: 'OTP sent successfully',
+      email,
     });
+  } catch (error) {
+    console.error(error);
+    if (error.isOperational) {
+      res.status(error.statusCode).json({
+        status: error.status,
+        message: error.message,
+      });
+    } else {
+      res.status(500).json({
+        status: 'error',
+        message: error.message,
+      });
+    }
+  }
+}
+
+exports.verifyEmailOTP = async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+    const savedEmail = await EmailList.findOne({ email });
+
+    if (!savedEmail) {
+      return res.status(400).json({
+        message: "No OTP has been sent to this email address",
+      });
+    }
+
+    if (otp == savedEmail.otp) {
+      return res.json({
+        status: "success",
+        message: 'Email verification successful!',
+      });
+    } else {
+      return res.status(400).json({
+        status: "error",
+        message: 'OTP incorrect. Check and try again',
+      });
+    }
+
   } catch (error) {
     console.error(error);
     if (error.isOperational) {
