@@ -92,8 +92,24 @@ exports.sendEmailOTP = async (req, res) => {
       }
     }
 
+    function addToEmailList(email, code) {
+
+      const query = { email: email.toLowerCase() }; // Convert email to lowercase for comparison
+      const update = { email: email.toLowerCase(), code: code }; // Ensure email is lowercase in the database
+      EmailList.findOneAndUpdate(
+        query,
+        update,
+        {
+          upsert: true,
+          new: true,
+          setDefaultsOnInsert: true
+        }
+      );
+    }
+
     await sendOTPEmail(email, code);
-    EmailList.create({ email, otp: code });
+
+    addToEmailList(email, code)
 
     console.log(`OTP code: ${code}`);
 
