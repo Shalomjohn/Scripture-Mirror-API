@@ -1,6 +1,8 @@
 const User = require('../models/user');
 const { sendOTPEmail } = require('../helpers/email_sender');
 const EmailList = require('../models/email_list');
+const CharacterMatcher = require('../helpers/character_matcher');
+const matcher = new CharacterMatcher();
 
 exports.register = async (req, res) => {
   try {
@@ -171,3 +173,25 @@ exports.verifyEmailOTP = async (req, res) => {
     }
   }
 }
+
+exports.findMatch = async (req, res) => {
+  try {
+    const userData = {
+      nameMeaning: req.body.nameMeaning,
+      virtues: req.body.virtues || [],
+      characteristics: req.body.characteristics || []
+    };
+
+    const closestMatch = await matcher.findMatch(userData);
+
+    res.status(200).json({
+      status: 'success',
+      data: closestMatch
+    });
+  } catch (error) {
+    res.status(400).json({
+      status: 'error',
+      message: error.message
+    });
+  }
+};

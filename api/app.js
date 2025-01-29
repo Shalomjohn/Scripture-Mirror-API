@@ -4,6 +4,7 @@ const morgan = require("morgan")
 const bodyParser = require("body-parser")
 const mongoose = require("mongoose")
 const accountRoutes = require('./routes/accountRoutes');
+const seedCharacters = require('./helpers/set_characters');
 
 // Load environment variables
 dotenv.config();
@@ -27,6 +28,7 @@ database.on('error', (error) => {
 
 database.once('open', () => {
     console.log('Database Connected');
+    seedCharacters();
 })
 
 app.use((req, res, next) => {
