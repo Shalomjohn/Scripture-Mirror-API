@@ -30,7 +30,6 @@ const userSchema = new mongoose.Schema({
   },
   nameMeaning: {
     type: String,
-    required: [true, 'Name meaning is required'],
     trim: true
   },
   createdAt: {

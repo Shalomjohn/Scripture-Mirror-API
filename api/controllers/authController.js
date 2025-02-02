@@ -6,12 +6,20 @@ const matcher = new CharacterMatcher();
 
 exports.register = async (req, res) => {
   try {
+
+    const userExists = await User.findOne({ email: req.body.email });
+    if (userExists) {
+      return res.status(400).json({
+        status: "error",
+        message: "A user already exists with this email address",
+      });
+    }
+
     const newUser = await User.create({
       firstName: req.body.firstName,
       lastName: req.body.lastName,
       email: req.body.email,
       password: req.body.password,
-      nameMeaning: req.body.nameMeaning
     });
 
     // Remove password from output
