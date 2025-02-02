@@ -94,19 +94,16 @@ exports.sendEmailOTP = async (req, res) => {
       }
     }
 
-    function addToEmailList(email, code) {
+    const addToEmailList = async (email, code) => {
 
-      const query = { email: email.toLowerCase() }; // Convert email to lowercase for comparison
-      const update = { email: email.toLowerCase(), code: code }; // Ensure email is lowercase in the database
-      EmailList.findOneAndUpdate(
-        query,
-        update,
-        {
-          upsert: true,
-          new: true,
-          setDefaultsOnInsert: true
-        }
-      );
+      const savedEmail = await EmailList.findOne({ email });
+
+      if (!savedEmail) {
+        EmailList.create({ email, otp: code })
+      } else {
+        savedEmail.otp = code;
+        savedEmail.save();
+      }
     }
 
     await sendOTPEmail(email, code);
