@@ -84,6 +84,18 @@ exports.login = async (req, res) => {
     }
   };
 
+const addToEmailList = async (email, code) => {
+
+  const savedEmail = await EmailList.findOne({ email });
+
+  if (!savedEmail) {
+    await EmailList.create({ email, otp: code })
+  } else {
+    savedEmail.otp = code;
+    savedEmail.save();
+  }
+}
+
 
 exports.sendEmailOTP = async (req, res) => {
   try {
@@ -99,18 +111,6 @@ exports.sendEmailOTP = async (req, res) => {
           status: "error",
           message: "A user already exists with that email address",
         });
-      }
-    }
-
-    const addToEmailList = async (email, code) => {
-
-      const savedEmail = await EmailList.findOne({ email });
-
-      if (!savedEmail) {
-        EmailList.create({ email, otp: code })
-      } else {
-        savedEmail.otp = code;
-        savedEmail.save();
       }
     }
 
