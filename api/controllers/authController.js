@@ -1,4 +1,5 @@
 const User = require('../models/user');
+const { QuizSubmission } = require('../models/character_quiz_submission');
 const { sendOTPEmail } = require('../helpers/email_sender');
 const EmailList = require('../models/email_list');
 const { findBestMatch, calculateProfile, matchNameMeaning } = require('../helpers/character_matcher');
@@ -193,7 +194,7 @@ exports.findMatch = async (req, res) => {
     const { primaryMatch, alternateMatch, scoreDifference } = findBestMatch(profile, nameThemes, gender);
 
     // Generate response with explanation and alternatives
-    const response = {
+    const matchResult = {
       primaryCharacter: {
         name: primaryMatch.name,
         gender: primaryMatch.gender,
@@ -213,7 +214,16 @@ exports.findMatch = async (req, res) => {
       }
     };
 
-    res.json(response);
+    const user = await User.findById(req.user._id);
+
+    const quizResponse = await QuizSubmission.create({ user: req.user._id, gender, nameMeaning, quizResponses, matchResult });
+    await quizResponse.save();
+
+    user.quizResponseData = quizResponse;
+    user.bibleMatch = matchResult.primaryCharacter;
+    user.save()
+
+    res.json({ matchResult, user });
   } catch (error) {
     res.status(500).json({ error: `Error matching biblical character: ${error}` });
   }

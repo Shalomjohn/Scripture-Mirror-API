@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const validator = require('validator');
 const jwt = require('jsonwebtoken');
+const { QuizSubmissionSchema } = require('./character_quiz_submission')
 
 const userSchema = new mongoose.Schema({
   firstName: {
@@ -31,6 +32,15 @@ const userSchema = new mongoose.Schema({
   nameMeaning: {
     type: String,
     trim: true
+  },
+  bibleMatch: {
+    name: String,
+    score: Number,
+    traits: [String],
+    explanation: String
+  },
+  quizResponseData: {
+    type: QuizSubmissionSchema,
   },
   createdAt: {
     type: Date,
