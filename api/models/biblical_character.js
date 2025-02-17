@@ -3,24 +3,29 @@ const mongoose = require('mongoose');
 const biblicalCharacterSchema = new mongoose.Schema({
   name: {
     type: String,
-    required: true,
-    unique: true
-  },
-  nameMeaning: {
-    type: String,
     required: true
   },
-  significance: [String],
-  characteristics: [String],
-  biblicalReferences: [{
-    book: String,
-    chapter: Number,
-    verse: Number,
-    text: String
+  gender: {
+    type: String
+  },
+  traits: [{
+    type: String,
+    trim: true
   }],
-  story: String,
-  virtues: [String],
-  challenges: [String]
+  leadership: {
+    type: String
+  },
+  spiritualStyle: {
+    type: String
+  },
+  challenges: [{
+    type: String,
+    trim: true
+  }],
+  nameThemes: [{
+    type: String,
+    trim: true
+  }]
 });
 
 const BiblicalCharacter = mongoose.model('BiblicalCharacter', biblicalCharacterSchema);

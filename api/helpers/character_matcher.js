@@ -1,87 +1,127 @@
-// src/utils/characterMatcher.js
-const natural = require('natural');
-const BiblicalCharacter = require('../models/biblical_character');
+const { biblicalCharacters } = require("../helpers/set_characters");
 
-class CharacterMatcher {
-  constructor() {
-    this.tokenizer = new natural.WordTokenizer();
-    this.stemmer = natural.PorterStemmer;
-  }
+// Calculate personality profile based on quiz responses
+function calculateProfile(responses) {
+  const profile = {
+    boldness: 0,
+    wisdom: 0,
+    service: 0,
+    patience: 0,
+    leadership: '',
+    spiritualStyle: '',
+  };
 
-  // Preprocess text for matching
-  preprocess(text) {
-    const tokens = this.tokenizer.tokenize(text.toLowerCase());
-    return tokens.map(token => this.stemmer.stem(token));
-  }
+  // Analyze personality section
+  if (responses.personality) {
+    const personalityMap = {
+      'Bold and courageous': { boldness: 2 },
+      'Patient and nurturing': { patience: 2, service: 1 },
+      'Strategic and thoughtful': { wisdom: 2 },
+      'Humble and obedient': { service: 2, patience: 1 },
+    };
 
-  // Calculate similarity between two strings
-  calculateSimilarity(str1, str2) {
-    const tokens1 = this.preprocess(str1);
-    const tokens2 = this.preprocess(str2);
-    
-    // Use Jaccard similarity
-    const set1 = new Set(tokens1);
-    const set2 = new Set(tokens2);
-    const intersection = new Set([...set1].filter(x => set2.has(x)));
-    const union = new Set([...set1, ...set2]);
-    
-    return intersection.size / union.size;
-  }
-
-  // Calculate virtue match score
-  calculateVirtueMatch(userVirtues, characterVirtues) {
-    let matchScore = 0;
-    userVirtues.forEach(virtue => {
-      characterVirtues.forEach(charVirtue => {
-        matchScore += this.calculateSimilarity(virtue, charVirtue);
+    responses.personality.forEach(answer => {
+      const traits = personalityMap[answer] || {};
+      Object.entries(traits).forEach(([trait, value]) => {
+        profile[trait] += value;
       });
     });
-    return matchScore / (userVirtues.length * characterVirtues.length);
   }
 
-  // Main matching algorithm
-  async findMatch(userData) {
-    try {
-      const characters = await BiblicalCharacter.find({});
-      const matches = characters.map(character => {
-        // Calculate name meaning similarity
-        const nameMeaningScore = this.calculateSimilarity(
-          userData.nameMeaning,
-          character.nameMeaning
-        ) * 0.4; // 40% weight
+  // Analyze spiritual journey
+  if (responses.spiritual_journey) {
+    const spiritualMap = {
+      'Face them head-on': { boldness: 1 },
+      'Reflect and pray': { wisdom: 1 },
+      'Seek wise counsel': { wisdom: 1 },
+      'Trust Gods timing': { patience: 1 },
+    };
 
-        // Calculate virtue match
-        const virtueScore = this.calculateVirtueMatch(
-          userData.virtues || [],
-          character.virtues
-        ) * 0.3; // 30% weight
-
-        // Calculate characteristic match
-        const characteristicScore = this.calculateVirtueMatch(
-          userData.characteristics || [],
-          character.characteristics
-        ) * 0.3; // 30% weight
-
-        const totalScore = nameMeaningScore + virtueScore + characteristicScore;
-
-        return {
-          characterMatch: character,
-          matchScore: totalScore,
-          matchDetails: {
-            nameMeaningMatch: nameMeaningScore,
-            virtueMatch: virtueScore,
-            characteristicMatch: characteristicScore
-          }
-        };
+    responses.spiritual_journey.forEach(answer => {
+      const traits = spiritualMap[answer] || {};
+      Object.entries(traits).forEach(([trait, value]) => {
+        profile[trait] += value;
       });
-
-      // Sort by match score and return top matches
-      return matches
-        .sort((a, b) => b.matchScore - a.matchScore)[0];
-    } catch (error) {
-      throw new Error('Error finding character matches: ' + error.message);
-    }
+    });
   }
+
+  // Set dominant traits
+  profile.leadership = profile.boldness > profile.wisdom ? 'direct' : 'strategic';
+  profile.spiritualStyle = profile.service > profile.patience ? 'active' : 'contemplative';
+
+  return profile;
 }
 
-module.exports = CharacterMatcher;
+// Match name meaning to biblical themes
+function matchNameMeaning(nameMeaning) {
+  const nameThemes = [];
+
+  const meaning = nameMeaning.toLowerCase();
+
+  const themeMatchers = {
+    leadership: ['leader', 'strong', 'mighty', 'power'],
+    wisdom: ['wise', 'understanding', 'judge', 'counsel'],
+    faith: ['faithful', 'believer', 'trust', 'god'],
+    service: ['helper', 'servant', 'gives', 'serves'],
+    grace: ['blessed', 'favor', 'grace', 'gift'],
+  };
+
+  Object.entries(themeMatchers).forEach(([theme, keywords]) => {
+    if (keywords.some(keyword => meaning.includes(keyword))) {
+      nameThemes.push(theme);
+    }
+  });
+
+  return nameThemes;
+}
+
+// Enhanced matching function with gender consideration
+function findBestMatch(profile, nameThemes, userGender) {
+  let bestMatch = null;
+  let highestScore = -1;
+  let secondBestMatch = null;
+  let secondHighestScore = -1;
+
+  biblicalCharacters.forEach(character => {
+    let score = 0;
+
+    // Base trait matching
+    if (character.leadership === profile.leadership) score += 2;
+    if (character.spiritualStyle === profile.spiritualStyle) score += 2;
+
+    // Name theme matching
+    nameThemes.forEach(theme => {
+      if (character.nameThemes.includes(theme)) score += 3;
+    });
+
+    // Trait matching
+    if (profile.boldness > 3 && character.traits.includes('courageous')) score += 2;
+    if (profile.wisdom > 3 && character.traits.includes('wise')) score += 2;
+    if (profile.service > 3 && character.traits.includes('servant')) score += 2;
+    if (profile.patience > 3 && character.traits.includes('patient')) score += 2;
+
+    // Gender matching (small bonus rather than requirement)
+    if (userGender && character.gender === userGender) {
+      score += 1;
+    }
+
+    // Track both best and second-best matches
+    if (score > highestScore) {
+      secondBestMatch = bestMatch;
+      secondHighestScore = highestScore;
+      highestScore = score;
+      bestMatch = character;
+    } else if (score > secondHighestScore) {
+      secondHighestScore = score;
+      secondBestMatch = character;
+    }
+  });
+
+  return {
+    primaryMatch: bestMatch,
+    alternateMatch: secondBestMatch,
+    scoreDifference: highestScore - secondHighestScore
+  };
+}
+
+module.exports = { findBestMatch, calculateProfile, matchNameMeaning };
