@@ -37,10 +37,8 @@ const userSchema = new mongoose.Schema({
     name: String,
     score: Number,
     traits: [String],
+    challenges: [String],
     explanation: String
-  },
-  quizResponseData: {
-    type: QuizSubmissionSchema,
   },
   createdAt: {
     type: Date,

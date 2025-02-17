@@ -219,7 +219,6 @@ exports.findMatch = async (req, res) => {
     const quizResponse = await QuizSubmission.create({ user: req.user._id, gender, nameMeaning, quizResponses, matchResult });
     await quizResponse.save();
 
-    user.quizResponseData = quizResponse;
     user.bibleMatch = matchResult.primaryCharacter;
     user.save()
 
