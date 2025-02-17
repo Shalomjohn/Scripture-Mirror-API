@@ -1,5 +1,6 @@
 const express = require('express');
 const authController = require('../controllers/authController');
+const authenticationMiddleware = require('../middlewares/authenticationMiddleware');
 const router = express.Router();
 
 
@@ -7,6 +8,11 @@ router.post('/register', authController.register);
 router.post('/login', authController.login);
 router.post('/send-email-otp', authController.sendEmailOTP);
 router.post('/verify-email-otp', authController.verifyEmailOTP);
-router.get('/find-match', authController.findMatch);
+
+
+// Protected routes (require authentication)
+router.use(authenticationMiddleware.authenticate);
+
+router.post('/find-match', authController.findMatch);
 
 module.exports = router;
