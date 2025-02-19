@@ -47,7 +47,8 @@ const userSchema = new mongoose.Schema({
   updatedAt: {
     type: Date,
     default: Date.now
-  }
+  },
+  bibleMatchAssigned: { type: Boolean, default: false },
 });
 
 // Hash password before saving

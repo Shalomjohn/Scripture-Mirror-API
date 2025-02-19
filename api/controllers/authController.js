@@ -220,6 +220,7 @@ exports.findMatch = async (req, res) => {
     await quizResponse.save();
 
     user.bibleMatch = matchResult.primaryCharacter;
+    user.bibleMatchAssigned = true;
     user.save()
 
     res.json({ matchResult, user });
