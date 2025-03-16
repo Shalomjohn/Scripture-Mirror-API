@@ -4,6 +4,7 @@ const morgan = require("morgan")
 const bodyParser = require("body-parser")
 const mongoose = require("mongoose")
 const accountRoutes = require('./routes/accountRoutes');
+const dailyScriptureRoutes = require('./routes/dailyScriptureRoutes');
 const { seedCharacters } = require('./helpers/set_characters');
 
 // Load environment variables
@@ -50,6 +51,7 @@ app.use((req, res, next) => {
 
 // Routes
 app.use('/api/accounts', accountRoutes);
+app.use('/api/daily-scripture', dailyScriptureRoutes);
 
 
 // Fallback
