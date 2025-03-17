@@ -14,5 +14,6 @@ router.post('/verify-email-otp', authController.verifyEmailOTP);
 router.use(authenticationMiddleware.authenticate);
 
 router.post('/find-match', authController.findMatch);
+router.post('/bookmark', authController.bookmark);
 
 module.exports = router;

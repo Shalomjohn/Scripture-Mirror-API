@@ -228,3 +228,20 @@ exports.findMatch = async (req, res) => {
     res.status(500).json({ error: `Error matching biblical character: ${error}` });
   }
 };
+
+exports.bookmark = async (req, res) => {
+  try {
+    const { scriptureId } = req.body;
+    const user = await User.findById(req.user._id);
+
+    // Add to bookmarks if not already bookmarked
+    if (!user.bookmarks.includes(scriptureId)) {
+      user.bookmarks.push(scriptureId);
+      await user.save();
+    }
+
+    res.json({ message: "Scripture bookmarked", bookmarks: user.bookmarks });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+}

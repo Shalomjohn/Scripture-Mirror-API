@@ -49,6 +49,7 @@ const userSchema = new mongoose.Schema({
     default: Date.now
   },
   bibleMatchAssigned: { type: Boolean, default: false },
+  bookmarks: [{ type: mongoose.Schema.Types.ObjectId, ref: "DailyScripture" }],
 });
 
 // Hash password before saving
