@@ -6,4 +6,6 @@ const DailyScriptureSchema = new mongoose.Schema({
     text: { type: String, required: true }    // Full scripture text
 });
 
-module.exports = mongoose.model("DailyScripture", DailyScriptureSchema);
+const DailyScripture = mongoose.model("DailyScripture", DailyScriptureSchema);
+
+module.exports = { DailyScriptureSchema, DailyScripture };

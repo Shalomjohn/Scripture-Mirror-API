@@ -1,4 +1,4 @@
-const DailyScripture = require("../models/daily_scripture");
+const { DailyScripture } = require("../models/daily_scripture");
 
 exports.setDailyScripture = async (req, res) => {
     try {

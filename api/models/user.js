@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const validator = require('validator');
 const jwt = require('jsonwebtoken');
-const { QuizSubmissionSchema } = require('./character_quiz_submission')
+const { DailyScriptureSchema } = require('./daily_scripture');
 
 const userSchema = new mongoose.Schema({
   firstName: {
@@ -49,7 +49,7 @@ const userSchema = new mongoose.Schema({
     default: Date.now
   },
   bibleMatchAssigned: { type: Boolean, default: false },
-  bookmarks: [{ type: mongoose.Schema.Types.ObjectId, ref: "DailyScripture" }],
+  bookmarks: [{ type: DailyScriptureSchema }],
 });
 
 // Hash password before saving

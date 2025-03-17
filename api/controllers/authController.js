@@ -3,6 +3,7 @@ const { QuizSubmission } = require('../models/character_quiz_submission');
 const { sendOTPEmail } = require('../helpers/email_sender');
 const EmailList = require('../models/email_list');
 const { findBestMatch, calculateProfile, matchNameMeaning } = require('../helpers/character_matcher');
+const { DailyScripture } = require("../models/daily_scripture");
 
 exports.register = async (req, res) => {
   try {
@@ -233,10 +234,18 @@ exports.bookmark = async (req, res) => {
   try {
     const { scriptureId } = req.body;
     const user = await User.findById(req.user._id);
+    const dailyScripture = await DailyScripture
+      .findById(scriptureId);;
+
+    if (!dailyScripture) {
+      return res.status(400).json({
+        message: "Incorrect Daily Scritpure ID",
+      });
+    }
 
     // Add to bookmarks if not already bookmarked
     if (!user.bookmarks.includes(scriptureId)) {
-      user.bookmarks.push(scriptureId);
+      user.bookmarks.push(dailyScripture);
       await user.save();
     }
 
