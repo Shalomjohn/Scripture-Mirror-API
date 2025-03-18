@@ -230,7 +230,7 @@ exports.findMatch = async (req, res) => {
   }
 };
 
-exports.bookmark = async (req, res) => {
+exports.addBookmark = async (req, res) => {
   try {
     const { scriptureId } = req.body;
     const user = await User.findById(req.user._id);
@@ -244,12 +244,44 @@ exports.bookmark = async (req, res) => {
     }
 
     // Add to bookmarks if not already bookmarked
-    if (!user.bookmarks.includes(scriptureId)) {
+    if (!user.bookmarks.includes(dailyScripture)) {
       user.bookmarks.push(dailyScripture);
       await user.save();
     }
 
     res.json({ message: "Scripture bookmarked", bookmarks: user.bookmarks });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+}
+
+exports.removeBookmark = async (req, res) => {
+  try {
+    const { scriptureId } = req.body;
+    const user = await User.findById(req.user._id);
+    const dailyScripture = await DailyScripture
+      .findById(scriptureId);
+
+    if (!dailyScripture) {
+      return res.status(400).json({
+        message: "Incorrect Daily Scritpure ID",
+      });
+    }
+
+    // Add to bookmarks if not already bookmarked
+    var bookmarks = user.bookmarks;
+
+    for (var i = 0; i < bookmarks.length; i++) {
+      if (bookmarks[i]._id.equals(dailyScripture._id)) {
+        bookmarks.splice(i, 1);
+        break;
+      }
+    }
+
+    user.bookmarks = bookmarks;
+    await user.save();
+
+    res.json({ message: "Successfully removed from bookmarks", bookmarks: user.bookmarks });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
