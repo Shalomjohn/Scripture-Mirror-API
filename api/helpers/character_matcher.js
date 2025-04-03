@@ -132,7 +132,7 @@ function findBestMatch(profile, nameThemes, userGender) {
         boldness: ["Joshua 1:9", "2 Timothy 1:7", "Deuteronomy 31:6"],
         wisdom: ["Proverbs 3:13", "James 1:5", "Ecclesiastes 7:12"],
         service: ["Galatians 5:13", "Mark 10:45", "Matthew 23:11"],
-        patience: ["James 1:12", "Romans 5:3-4", "Psalm 27:14"]
+        patience: ["James 1:12", "Romans 5:3", "Psalm 27:14"]
       };
 
       const dominantTrait = Object.entries(profile).sort((a, b) => b[1] - a[1])[0][0];
