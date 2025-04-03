@@ -2,9 +2,16 @@ const { DailyScripture } = require("../models/daily_scripture");
 
 exports.setDailyScripture = async (req, res) => {
     try {
-        const { verse, text } = req.body;
+        let { verse, text, date } = req.body;
+        // parse date
+        if (date) {
+            const dateParts = date.split("-");
+            date = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]).setHours(0, 0, 0, 0);
+        } else {
+            date = new Date().setHours(0, 0, 0, 0);
+        }
         const scripture = await DailyScripture.findOneAndUpdate(
-            { date: new Date().setHours(0, 0, 0, 0) }, // Ensure only one scripture per day
+            { date: date }, // Ensure only one scripture per day
             { verse, text },
             { new: true, upsert: true }
         );
