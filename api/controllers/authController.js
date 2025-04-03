@@ -192,7 +192,7 @@ exports.findMatch = async (req, res) => {
     const nameThemes = matchNameMeaning(nameMeaning);
 
     // Find best matching character
-    const { primaryMatch, alternateMatch, scoreDifference } = findBestMatch(profile, nameThemes, gender);
+    const { primaryMatch, alternateMatch, scoreDifference, verseReference } = findBestMatch(profile, nameThemes, gender);
 
     // Generate response with explanation and alternatives
     const matchResult = {
@@ -201,6 +201,7 @@ exports.findMatch = async (req, res) => {
         gender: primaryMatch.gender,
         traits: primaryMatch.traits,
         challenges: primaryMatch.challenges,
+        verseReference: verseReference,
         explanation: `Based on your responses, you share many qualities with ${primaryMatch.name}. 
         Like ${primaryMatch.name}, you demonstrate ${primaryMatch.traits.join(', ')}. 
         Your approach to leadership and spiritual growth aligns with ${primaryMatch.name}'s 
