@@ -15,7 +15,6 @@ function calculateProfile(responses) {
     spiritualStyle: '',
   };
 
-  // Trait mapping for personality questions
   const personalityMap = {
     'Bold and courageous': { boldness: 2 },
     'Patient and nurturing': { patience: 2, service: 1 },
@@ -23,16 +22,14 @@ function calculateProfile(responses) {
     'Humble and obedient': { service: 2, patience: 1 },
   };
 
-  // Trait mapping for spiritual journey questions
   const spiritualMap = {
     'Face them head-on': { boldness: 1 },
     'Reflect and pray': { wisdom: 1 },
     'Seek wise counsel': { wisdom: 1 },
-    'Trust Gods timing': { patience: 1 },
-    'Help others in need': { service: 1 }, // Added missing option
+    'Trust God’s timing': { patience: 1 },
+    'Help others in need': { service: 1 },
   };
 
-  // Process personality responses
   if (Array.isArray(responses.personality)) {
     responses.personality.forEach(answer => {
       const traits = personalityMap[answer] || {};
@@ -42,7 +39,6 @@ function calculateProfile(responses) {
     });
   }
 
-  // Process spiritual journey responses
   if (Array.isArray(responses.spiritual_journey)) {
     responses.spiritual_journey.forEach(answer => {
       const traits = spiritualMap[answer] || {};
@@ -52,25 +48,8 @@ function calculateProfile(responses) {
     });
   }
 
-  // Determine leadership style with tiebreaker
-  if (profile.boldness > profile.wisdom) {
-    profile.leadership = 'direct';
-  } else if (profile.wisdom > profile.boldness) {
-    profile.leadership = 'strategic';
-  } else {
-    // Tiebreaker
-    profile.leadership = profile.service >= profile.patience ? 'strategic' : 'direct';
-  }
-
-  // Determine spiritual style with tiebreaker
-  if (profile.service > profile.patience) {
-    profile.spiritualStyle = 'active';
-  } else if (profile.patience > profile.service) {
-    profile.spiritualStyle = 'contemplative';
-  } else {
-    // Tiebreaker
-    profile.spiritualStyle = profile.wisdom >= profile.boldness ? 'contemplative' : 'active';
-  }
+  profile.leadership = profile.boldness > profile.wisdom ? 'direct' : 'strategic';
+  profile.spiritualStyle = profile.service > profile.patience ? 'active' : 'contemplative';
 
   return profile;
 }
@@ -81,30 +60,21 @@ function calculateProfile(responses) {
  * @returns {Array} - Array of matching biblical themes
  */
 function matchNameMeaning(nameMeaning) {
-  if (!nameMeaning || typeof nameMeaning !== 'string') {
-    return [];
-  }
+  if (!nameMeaning || typeof nameMeaning !== 'string') return [];
 
-  const nameThemes = [];
-  const meaning = nameMeaning.toLowerCase();
-
-  const themeMatchers = {
-    leadership: ['leader', 'strong', 'mighty', 'power', 'king', 'rule', 'authority'],
-    wisdom: ['wise', 'understanding', 'judge', 'counsel', 'knowledge', 'discern', 'insight'],
-    faith: ['faithful', 'believer', 'trust', 'god', 'hope', 'believe', 'devoted'],
-    service: ['helper', 'servant', 'gives', 'serves', 'assist', 'support', 'aid'],
-    grace: ['blessed', 'favor', 'grace', 'gift', 'mercy', 'love', 'kindness'],
-    courage: ['brave', 'courage', 'valor', 'fearless', 'bold', 'strength', 'warrior'],
-    patience: ['patient', 'endure', 'wait', 'steadfast', 'persevere', 'abide'],
+  const themes = {
+    leadership: ['leader', 'strong', 'mighty', 'king', 'rule'],
+    wisdom: ['wise', 'judge', 'counsel', 'insight'],
+    faith: ['faithful', 'believer', 'trust', 'hope'],
+    service: ['helper', 'servant', 'support', 'aid'],
+    grace: ['blessed', 'favor', 'gift', 'mercy'],
+    courage: ['brave', 'courage', 'valor', 'warrior'],
+    patience: ['patient', 'endure', 'wait', 'steadfast'],
   };
 
-  Object.entries(themeMatchers).forEach(([theme, keywords]) => {
-    if (keywords.some(keyword => meaning.includes(keyword))) {
-      nameThemes.push(theme);
-    }
-  });
-
-  return nameThemes;
+  return Object.entries(themes)
+    .filter(([_, keywords]) => keywords.some(keyword => nameMeaning.toLowerCase().includes(keyword)))
+    .map(([theme]) => theme);
 }
 
 /**
@@ -115,35 +85,22 @@ function matchNameMeaning(nameMeaning) {
  * @returns {Object} - Best match and alternate match information
  */
 function findBestMatch(profile, nameThemes, userGender) {
-  let bestMatch = null;
-  let highestScore = -1;
-  let secondBestMatch = null;
-  let secondHighestScore = -1;
-  let matchExplanation = "";
-  let verseReference = "";
-
-  // Default fallback verse
-  const defaultVerse = {
-    reference: "Jeremiah 29:11",
-    text: "For I know the plans I have for you, declares the LORD, plans to prosper you and not to harm you, plans to give you hope and a future."
-  };
+  let bestMatch = null, secondBestMatch = null;
+  let highestScore = -1, secondHighestScore = -1;
+  let matchExplanation = "", verseReferences = [];
 
   biblicalCharacters.forEach(character => {
-    let score = 0;
-    const matchReasons = [];
+    let score = 0, matchReasons = [];
 
-    // Core trait matching
     if (character.leadership === profile.leadership) {
       score += 2;
       matchReasons.push(`leadership style (${profile.leadership})`);
     }
-
     if (character.spiritualStyle === profile.spiritualStyle) {
       score += 2;
       matchReasons.push(`spiritual style (${profile.spiritualStyle})`);
     }
 
-    // Name theme matching with stronger weight
     nameThemes.forEach(theme => {
       if (character.nameThemes && character.nameThemes.includes(theme)) {
         score += 3;
@@ -151,65 +108,35 @@ function findBestMatch(profile, nameThemes, userGender) {
       }
     });
 
-    // Individual trait matching
-    const traitMatches = [];
-    if (profile.boldness > 2 && character.traits.includes('courageous')) {
-      score += 2;
-      traitMatches.push('boldness');
-    }
+    ['boldness', 'wisdom', 'service', 'patience'].forEach(trait => {
+      if (profile[trait] > 2 && character.traits.includes(trait)) {
+        score += 2;
+        matchReasons.push(trait);
+      }
+    });
 
-    if (profile.wisdom > 2 && character.traits.includes('wise')) {
-      score += 2;
-      traitMatches.push('wisdom');
-    }
-
-    if (profile.service > 2 && character.traits.includes('servant')) {
-      score += 2;
-      traitMatches.push('service');
-    }
-
-    if (profile.patience > 2 && character.traits.includes('patient')) {
-      score += 2;
-      traitMatches.push('patience');
-    }
-
-    if (traitMatches.length > 0) {
-      matchReasons.push(`personal traits (${traitMatches.join(', ')})`);
-    }
-
-    // Gender matching (small bonus)
     if (userGender && character.gender === userGender) {
       score += 1;
-      matchReasons.push('gender');
+      matchReasons.push('gender match');
     }
 
-    // Track both best and second-best matches
     if (score > highestScore) {
       secondBestMatch = bestMatch;
       secondHighestScore = highestScore;
       highestScore = score;
       bestMatch = character;
+      matchExplanation = `${character.name} matches your profile in: ${matchReasons.join(', ')}.`;
+      verseReferences = character.verses ? character.verses.slice(0, 3) : [];
 
-      // Store explanation for best match
-      if (matchReasons.length > 0) {
-        matchExplanation = `${character.name} matches your profile in: ${matchReasons.join(', ')}.`;
-      }
+      const dominantTraitVerses = {
+        boldness: ["Joshua 1:9", "2 Timothy 1:7", "Deuteronomy 31:6"],
+        wisdom: ["Proverbs 3:13", "James 1:5", "Ecclesiastes 7:12"],
+        service: ["Galatians 5:13", "Mark 10:45", "Matthew 23:11"],
+        patience: ["James 1:12", "Romans 5:3-4", "Psalm 27:14"]
+      };
 
-      // Select appropriate verse based on character traits
-      if (character.verses && character.verses.length > 0) {
-        verseReference = character.verses[0];
-      } else {
-        // Assign verse based on dominant trait
-        const dominantTrait = [
-          { trait: 'boldness', value: profile.boldness, verse: "Joshua 1:9" },
-          { trait: 'wisdom', value: profile.wisdom, verse: "Proverbs 3:13" },
-          { trait: 'service', value: profile.service, verse: "Galatians 5:13" },
-          { trait: 'patience', value: profile.patience, verse: "James 1:12" }
-        ].sort((a, b) => b.value - a.value)[0];
-
-        verseReference = dominantTrait.verse;
-      }
-
+      const dominantTrait = Object.entries(profile).sort((a, b) => b[1] - a[1])[0][0];
+      verseReferences = dominantTraitVerses[dominantTrait] || verseReferences;
     } else if (score > secondHighestScore) {
       secondHighestScore = score;
       secondBestMatch = character;
@@ -221,9 +148,8 @@ function findBestMatch(profile, nameThemes, userGender) {
     alternateMatch: secondBestMatch,
     scoreDifference: highestScore - secondHighestScore,
     matchExplanation,
-    verseReference: verseReference || defaultVerse.reference
+    verseReferences
   };
 }
 
-// Export the functions
 module.exports = { findBestMatch, calculateProfile, matchNameMeaning };
