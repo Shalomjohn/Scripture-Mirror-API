@@ -29,13 +29,10 @@ const QuizSubmissionSchema = new Schema({
     default: ''
   },
 
-  // Quiz section responses
+  // Quiz section responses - using Mixed type for flexible structure
   quizResponses: {
-    personality: { type: [String] },
-    spiritual_journey: { type: [String] },
-    daily_habits: { type: [String] },
-    life_challenges: { type: [String] },
-    biblical_reflection: { type: [String] }
+    type: Schema.Types.Mixed,
+    required: true
   },
 
   // Results from character matching

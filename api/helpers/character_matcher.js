@@ -10,68 +10,79 @@ function calculateProfile(responses) {
     leadership: 0,
     humility: 0,
     resilience: 0,
-    leadership: '',
+    leadershipStyle: '',
     spiritualStyle: '',
   };
 
+  // Process each section's responses
   Object.entries(responses).forEach(([sectionId, sectionResponses]) => {
-    Object.entries(sectionResponses).forEach(([questionId, answers]) => {
-      if (!Array.isArray(answers)) {
-        return;
-      }
+    // Check if sectionResponses is an object (expected format)
+    if (typeof sectionResponses === 'object' && !Array.isArray(sectionResponses)) {
+    // Process responses for each question within the section
+      Object.entries(sectionResponses).forEach(([questionId, answers]) => {
+        if (Array.isArray(answers)) {
+          // Process each selected answer
+          answers.forEach(answer => {
+            // Map the different answers to trait scores
+            if (answer.includes('bold') || answer.includes('courage')) {
+              profile.boldness += 1;
+            }
+            if (answer.includes('wise') || answer.includes('knowledge') || answer.includes('discern')) {
+              profile.wisdom += 1;
+            }
+            if (answer.includes('help') || answer.includes('serve') || answer.includes('support')) {
+              profile.service += 1;
+            }
+            if (answer.includes('patient') || answer.includes('wait') || answer.includes('endure')) {
+              profile.patience += 1;
+            }
+            if (answer.includes('faith') || answer.includes('trust') || answer.includes('believe')) {
+              profile.faith += 1;
+            }
+            if (answer.includes('lead') || answer.includes('direct') || answer.includes('guide')) {
+              profile.leadership += 1;
+            }
+            if (answer.includes('humble') || answer.includes('modest')) {
+              profile.humility += 1;
+            }
+            if (answer.includes('overcome') || answer.includes('persevere') || answer.includes('strength')) {
+              profile.resilience += 1;
+            }
 
-      answers.forEach(answer => {
-        if (answer.includes('bold') || answer.includes('courage')) {
-          profile.boldness += 1;
-        }
-        if (answer.includes('wise') || answer.includes('knowledge') || answer.includes('discern')) {
-          profile.wisdom += 1;
-        }
-        if (answer.includes('help') || answer.includes('serve') || answer.includes('support')) {
-          profile.service += 1;
-        }
-        if (answer.includes('patient') || answer.includes('wait') || answer.includes('endure')) {
-          profile.patience += 1;
-        }
-        if (answer.includes('faith') || answer.includes('trust') || answer.includes('believe')) {
-          profile.faith += 1;
-        }
-        if (answer.includes('lead') || answer.includes('direct') || answer.includes('guide')) {
-          profile.leadership += 1;
-        }
-        if (answer.includes('humble') || answer.includes('modest')) {
-          profile.humility += 1;
-        }
-        if (answer.includes('overcome') || answer.includes('persevere') || answer.includes('strength')) {
-          profile.resilience += 1;
-        }
+            // Process custom answers for sentiment matching
+            if (answer.length > 15) { // Likely a custom answer
+              // Simple keyword matching for custom answers
+              const lowerAnswer = answer.toLowerCase();
 
-        if (answer.length > 15) {
-          const lowerAnswer = answer.toLowerCase();
+              const traitKeywords = {
+                boldness: ['bold', 'brave', 'courage', 'fearless', 'confident', 'strong'],
+                wisdom: ['wise', 'smart', 'knowledge', 'understand', 'discern', 'insight'],
+                service: ['help', 'serve', 'support', 'give', 'assist', 'volunteer'],
+                patience: ['patient', 'wait', 'endure', 'persevere', 'steady', 'calm'],
+                faith: ['faith', 'trust', 'believe', 'hope', 'faithful', 'devoted'],
+                leadership: ['lead', 'guide', 'direct', 'influence', 'inspire', 'manage'],
+                humility: ['humble', 'modest', 'unassuming', 'meek', 'gentle'],
+                resilience: ['resilient', 'strong', 'overcome', 'struggle', 'endure', 'adapt']
+              };
 
-          const traitKeywords = {
-            boldness: ['bold', 'brave', 'courage', 'fearless', 'confident', 'strong'],
-            wisdom: ['wise', 'smart', 'knowledge', 'understand', 'discern', 'insight'],
-            service: ['help', 'serve', 'support', 'give', 'assist', 'volunteer'],
-            patience: ['patient', 'wait', 'endure', 'persevere', 'steady', 'calm'],
-            faith: ['faith', 'trust', 'believe', 'hope', 'faithful', 'devoted'],
-            leadership: ['lead', 'guide', 'direct', 'influence', 'inspire', 'manage'],
-            humility: ['humble', 'modest', 'unassuming', 'meek', 'gentle'],
-            resilience: ['resilient', 'strong', 'overcome', 'struggle', 'endure', 'adapt']
-          };
-
-          Object.entries(traitKeywords).forEach(([trait, keywords]) => {
-            keywords.forEach(keyword => {
-              if (lowerAnswer.includes(keyword)) {
-                profile[trait] += 0.5;
-              }
-            });
+              // Count keyword matches in custom answers
+              Object.entries(traitKeywords).forEach(([trait, keywords]) => {
+                keywords.forEach(keyword => {
+                  if (lowerAnswer.includes(keyword)) {
+                    profile[trait] += 0.5; // Give partial weight to custom matches
+                  }
+                });
+              });
+            }
           });
         }
       });
-    });
+    } else {
+      console.log(`Warning: Unexpected format for section ${sectionId}`, sectionResponses);
+    }
   });
 
+  // Determine leadership style based on traits
   if (profile.boldness > profile.wisdom) {
     profile.leadershipStyle = 'direct';
   } else if (profile.wisdom > profile.boldness) {
@@ -82,6 +93,7 @@ function calculateProfile(responses) {
     profile.leadershipStyle = 'supportive';
   }
 
+  // Determine spiritual style based on traits
   if (profile.service > profile.patience) {
     profile.spiritualStyle = 'active';
   } else if (profile.patience > profile.service) {
