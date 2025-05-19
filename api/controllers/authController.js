@@ -185,47 +185,45 @@ exports.findMatch = async (req, res) => {
   try {
     const { quizResponses, nameMeaning, gender } = req.body;
 
-    // Calculate personality profile from quiz responses
     const profile = calculateProfile(quizResponses);
 
-    // Match name meaning to biblical themes
     const nameThemes = matchNameMeaning(nameMeaning);
 
-    // Find best matching character
-    const { primaryMatch, alternateMatch, scoreDifference, verseReferences } = findBestMatch(profile, nameThemes, gender);
+    const { primaryMatch, alternateMatches, matchScores } = findBestMatch(profile, nameThemes, gender);
 
-    // Generate response with explanation and alternatives
     const matchResult = {
       primaryCharacter: {
         name: primaryMatch.name,
         gender: primaryMatch.gender,
         traits: primaryMatch.traits,
         challenges: primaryMatch.challenges,
-        verseReferences: verseReferences,
-        explanation: `Based on your responses, you share many qualities with ${primaryMatch.name}. 
-        Like ${primaryMatch.name}, you demonstrate ${primaryMatch.traits.join(', ')}. 
-        Your approach to leadership and spiritual growth aligns with ${primaryMatch.name}'s 
-        ${primaryMatch.leadership} leadership style and ${primaryMatch.spiritualStyle} spiritual journey.`
+        leadership: primaryMatch.leadership,
+        spiritualStyle: primaryMatch.spiritualStyle,
+        score: primaryMatch.score,
+        verseReferences: primaryMatch.verseReferences,
+        explanation: primaryMatch.explanation
       },
-      alternateCharacter: {
-        name: alternateMatch.name,
-        gender: alternateMatch.gender,
-        traits: alternateMatch.traits,
-        explanation: `You also share some characteristics with ${alternateMatch.name}, particularly in terms of 
-        ${alternateMatch.traits.slice(0, 2).join(' and ')}.`
-      }
+      alternateMatches,
+      matchScores
     };
 
-    const user = await User.findById(req.user._id);
+    if (req.user) {
+      const user = await User.findById(req.user._id);
+      const quizResponse = await QuizSubmission.create({
+        user: req.user._id,
+        gender,
+        nameMeaning,
+        quizResponses,
+        matchResult
+      });
+      await quizResponse.save();
 
-    const quizResponse = await QuizSubmission.create({ user: req.user._id, gender, nameMeaning, quizResponses, matchResult });
-    await quizResponse.save();
+      user.bibleMatch = matchResult.primaryCharacter;
+      user.bibleMatchAssigned = true;
+      await user.save();
+    }
 
-    user.bibleMatch = matchResult.primaryCharacter;
-    user.bibleMatchAssigned = true;
-    user.save()
-
-    res.json({ matchResult, user });
+    res.json({ matchResult });
   } catch (error) {
     res.status(500).json({ error: `Error matching biblical character: ${error}` });
   }

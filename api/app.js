@@ -5,7 +5,9 @@ const bodyParser = require("body-parser")
 const mongoose = require("mongoose")
 const accountRoutes = require('./routes/accountRoutes');
 const dailyScriptureRoutes = require('./routes/dailyScriptureRoutes');
+const characterMatchRoutes = require('./routes/characterMatchRoutes');
 const { seedCharacters } = require('./helpers/set_characters');
+const { seedQuizData } = require('./controllers/quizController');
 
 // Load environment variables
 dotenv.config();
@@ -30,6 +32,7 @@ database.on('error', (error) => {
 database.once('open', () => {
     console.log('Database Connected');
     seedCharacters();
+    seedQuizData();
 })
 
 app.use((req, res, next) => {
@@ -52,6 +55,7 @@ app.use((req, res, next) => {
 // Routes
 app.use('/api/accounts', accountRoutes);
 app.use('/api/daily-scripture', dailyScriptureRoutes);
+app.use('/api/character-match', characterMatchRoutes);
 
 
 // Fallback
