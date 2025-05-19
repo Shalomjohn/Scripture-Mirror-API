@@ -249,11 +249,7 @@ function findBestMatch(profile, nameThemes, userGender) {
       leadership: primaryMatch.character.leadership,
       spiritualStyle: primaryMatch.character.spiritualStyle,
       verseReferences,
-      explanation: `Based on your responses, you share many qualities with ${primaryMatch.character.name}. 
-      Like ${primaryMatch.character.name}, you demonstrate ${primaryMatch.character.traits.join(', ')}. 
-      Your approach to leadership is similar to ${primaryMatch.character.name}'s 
-      ${primaryMatch.character.leadership} leadership style and you have a 
-      ${primaryMatch.character.spiritualStyle} spiritual journey.`
+      explanation: `Based on your responses, you share many qualities with ${primaryMatch.character.name}. Like ${primaryMatch.character.name}, you demonstrate ${primaryMatch.character.traits.join(', ')}. Your approach to leadership is similar to ${primaryMatch.character.name}'s ${primaryMatch.character.leadership} leadership style and you have a ${primaryMatch.character.spiritualStyle} spiritual journey.`
     },
     alternateMatches,
     matchScores: {
