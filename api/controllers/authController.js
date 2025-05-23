@@ -207,23 +207,23 @@ exports.findMatch = async (req, res) => {
       matchScores
     };
 
-    if (req.user) {
-      const user = await User.findById(req.user._id);
-      const quizResponse = await QuizSubmission.create({
-        user: req.user._id,
-        gender,
-        nameMeaning,
-        quizResponses,
-        matchResult
-      });
-      await quizResponse.save();
+    const user = await User.findById(req.user._id);
+    const quizResponse = await QuizSubmission.create({
+      user: req.user._id,
+      gender,
+      nameMeaning,
+      quizResponses,
+      matchResult
+    });
+    await quizResponse.save();
 
-      user.bibleMatch = matchResult.primaryCharacter;
-      user.bibleMatchAssigned = true;
-      await user.save();
-    }
+    user.bibleMatch = matchResult.primaryCharacter;
+    user.bibleMatchAssigned = true;
+    await user.save();
 
-    res.json({ matchResult });
+    matchResult
+
+    res.json({ matchResult, user });
   } catch (error) {
     res.status(500).json({ error: `Error matching biblical character: ${error}` });
   }
