@@ -1,6 +1,6 @@
 // src/controllers/quizController.js
-const QuizSection = require('../models/quiz_section');
-const QuizQuestion = require('../models/quiz_question');
+const QuizSection = require('../models/character_quiz_section');
+const QuizQuestion = require('../models/character_quiz_question');
 
 // Get all quiz sections
 exports.getQuizSections = async (req, res) => {

@@ -6,8 +6,9 @@ const mongoose = require("mongoose")
 const accountRoutes = require('./routes/accountRoutes');
 const dailyScriptureRoutes = require('./routes/dailyScriptureRoutes');
 const characterMatchRoutes = require('./routes/characterMatchRoutes');
+const dailyBibleQuizRoutes = require('./routes/dailyBibleQuizRoutes');
 const { seedCharacters } = require('./helpers/set_characters');
-const { seedQuizData } = require('./controllers/quizController');
+const { seedQuizData } = require('./controllers/characterQuizController');
 
 // Load environment variables
 dotenv.config();
@@ -56,6 +57,7 @@ app.use((req, res, next) => {
 app.use('/api/accounts', accountRoutes);
 app.use('/api/daily-scripture', dailyScriptureRoutes);
 app.use('/api/character-match', characterMatchRoutes);
+app.use('/api/daily-quiz', dailyBibleQuizRoutes);
 
 
 // Fallback

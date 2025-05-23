@@ -40,6 +40,26 @@ const userSchema = new mongoose.Schema({
     challenges: [String],
     explanation: String
   },
+  dailyQuizHistory: [{
+    date: {
+      type: Date,
+      required: true
+    },
+    score: {
+      type: Number,
+      required: true
+    },
+    totalQuestions: {
+      type: Number,
+      required: true
+    },
+    results: [{
+      questionId: String,
+      userAnswer: String,
+      correctAnswer: String,
+      isCorrect: Boolean
+    }]
+  }],
   createdAt: {
     type: Date,
     default: Date.now
@@ -53,18 +73,18 @@ const userSchema = new mongoose.Schema({
 });
 
 // Hash password before saving
-userSchema.pre('save', async function(next) {
+userSchema.pre('save', async function (next) {
   if (!this.isModified('password')) return next();
   this.password = await bcrypt.hash(this.password, 12);
   next();
 });
 
 // Compare password method
-userSchema.methods.comparePassword = async function(candidatePassword, userPassword) {
+userSchema.methods.comparePassword = async function (candidatePassword, userPassword) {
   return await bcrypt.compare(candidatePassword, userPassword);
 };
 
-userSchema.methods.generateAuthToken = function() {
+userSchema.methods.generateAuthToken = function () {
   return jwt.sign({ id: this._id }, process.env.JWT_SECRET_KEY, {
     expiresIn: '24h'
   });
