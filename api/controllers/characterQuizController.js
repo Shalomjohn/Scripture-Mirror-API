@@ -148,9 +148,9 @@ exports.seedQuizData = async () => {
         // Now check for questions
         const questionCount = await QuizQuestion.countDocuments();
 
-        // Create quiz questions - expanded set
+        // Create quiz questions - expanded set (12 questions per section)
         const questions = [
-            // Personality section
+            // Personality section (1-12)
             {
                 id: 'personality_q1',
                 text: 'How would you describe your approach to leadership?',
@@ -240,8 +240,98 @@ exports.seedQuizData = async () => {
                 sectionId: 'personality',
                 order: 6
             },
+            {
+                id: 'personality_q7',
+                text: 'What quality do people most often seek you out for?',
+                options: [
+                    'Your courage in difficult situations',
+                    'Your wisdom and good judgment',
+                    'Your willingness to help and serve',
+                    'Your patient listening ear',
+                    'Your faithful reliability'
+                ],
+                allowMultiple: true,
+                allowCustomInput: true,
+                sectionId: 'personality',
+                order: 7
+            },
+            {
+                id: 'personality_q8',
+                text: 'When working in a team, you naturally:',
+                options: [
+                    'Take charge and lead the group',
+                    'Provide strategic insight and direction',
+                    'Support others and help where needed',
+                    'Keep everyone calm and steady',
+                    'Inspire others through your example'
+                ],
+                allowMultiple: true,
+                allowCustomInput: true,
+                sectionId: 'personality',
+                order: 8
+            },
+            {
+                id: 'personality_q9',
+                text: 'How do you handle situations where you need to be humble?',
+                options: [
+                    'I struggle with being humble naturally',
+                    'I try to be modest about my achievements',
+                    'I focus on serving others instead of myself',
+                    'I listen more than I speak',
+                    'I acknowledge my need for wisdom from others'
+                ],
+                allowMultiple: true,
+                allowCustomInput: true,
+                sectionId: 'personality',
+                order: 9
+            },
+            {
+                id: 'personality_q10',
+                text: 'What helps you overcome personal struggles?',
+                options: [
+                    'My inner strength and resilience',
+                    'Seeking wise counsel and knowledge',
+                    'The support and help of others',
+                    'Patient endurance and waiting',
+                    'Faith and trust in God\'s plan'
+                ],
+                allowMultiple: true,
+                allowCustomInput: true,
+                sectionId: 'personality',
+                order: 10
+            },
+            {
+                id: 'personality_q11',
+                text: 'In stressful situations, others would describe you as:',
+                options: [
+                    'Bold and fearless',
+                    'Calm and discerning',
+                    'Helpful and supportive',
+                    'Steady and patient',
+                    'Strong and resilient'
+                ],
+                allowMultiple: true,
+                allowCustomInput: true,
+                sectionId: 'personality',
+                order: 11
+            },
+            {
+                id: 'personality_q12',
+                text: 'What drives your desire to influence others?',
+                options: [
+                    'To inspire courage and confidence',
+                    'To share wisdom and understanding',
+                    'To serve and assist them better',
+                    'To help them wait for the right timing',
+                    'To guide them in faithful living'
+                ],
+                allowMultiple: true,
+                allowCustomInput: true,
+                sectionId: 'personality',
+                order: 12
+            },
 
-            // Spiritual Journey section
+            // Spiritual Journey section (1-12)
             {
                 id: 'spiritual_journey_q1',
                 text: 'What aspect of your spiritual journey is most important to you?',
@@ -332,8 +422,98 @@ exports.seedQuizData = async () => {
                 sectionId: 'spiritual_journey',
                 order: 6
             },
+            {
+                id: 'spiritual_journey_q7',
+                text: 'What aspect of spiritual growth excites you most?',
+                options: [
+                    'Developing bold faith for challenges',
+                    'Gaining deeper wisdom and insight',
+                    'Finding new ways to serve others',
+                    'Learning patience in God\'s timing',
+                    'Building unshakeable trust in God'
+                ],
+                allowMultiple: true,
+                allowCustomInput: true,
+                sectionId: 'spiritual_journey',
+                order: 7
+            },
+            {
+                id: 'spiritual_journey_q8',
+                text: 'How do you prefer to lead others spiritually?',
+                options: [
+                    'By direct example and courage',
+                    'Through strategic teaching and guidance',
+                    'By humble service and support',
+                    'Through patient mentoring',
+                    'By inspiring faith and hope'
+                ],
+                allowMultiple: true,
+                allowCustomInput: true,
+                sectionId: 'spiritual_journey',
+                order: 8
+            },
+            {
+                id: 'spiritual_journey_q9',
+                text: 'What spiritual discipline helps you stay resilient?',
+                options: [
+                    'Bold prayer and declaration',
+                    'Study and pursuit of knowledge',
+                    'Acts of service and giving',
+                    'Quiet waiting and meditation',
+                    'Regular confession of faith'
+                ],
+                allowMultiple: true,
+                allowCustomInput: true,
+                sectionId: 'spiritual_journey',
+                order: 9
+            },
+            {
+                id: 'spiritual_journey_q10',
+                text: 'How do you maintain humility in your spiritual journey?',
+                options: [
+                    'I remind myself that courage comes from God',
+                    'I acknowledge how much I still need to understand',
+                    'I focus on serving rather than being served',
+                    'I practice patient listening to God and others',
+                    'I remember my complete dependence on faith'
+                ],
+                allowMultiple: true,
+                allowCustomInput: true,
+                sectionId: 'spiritual_journey',
+                order: 10
+            },
+            {
+                id: 'spiritual_journey_q11',
+                text: 'What helps you overcome spiritual struggles?',
+                options: [
+                    'Taking bold action in faith',
+                    'Seeking wise spiritual counsel',
+                    'Serving others in their struggles',
+                    'Patient endurance and perseverance',
+                    'Clinging to faithful promises'
+                ],
+                allowMultiple: true,
+                allowCustomInput: true,
+                sectionId: 'spiritual_journey',
+                order: 11
+            },
+            {
+                id: 'spiritual_journey_q12',
+                text: 'How do you want to influence others spiritually?',
+                options: [
+                    'By inspiring fearless faith',
+                    'By sharing insights and understanding',
+                    'By demonstrating servant leadership',
+                    'By modeling steady perseverance',
+                    'By encouraging trust in God\'s goodness'
+                ],
+                allowMultiple: true,
+                allowCustomInput: true,
+                sectionId: 'spiritual_journey',
+                order: 12
+            },
 
-            // Daily Habits section
+            // Daily Habits section (1-12)
             {
                 id: 'daily_habits_q1',
                 text: 'What spiritual practices are part of your regular routine?',
@@ -424,8 +604,98 @@ exports.seedQuizData = async () => {
                 sectionId: 'daily_habits',
                 order: 6
             },
+            {
+                id: 'daily_habits_q7',
+                text: 'How do you approach your daily spiritual practices?',
+                options: [
+                    'With bold commitment and courage',
+                    'Seeking wisdom for each day',
+                    'Looking for ways to serve and help',
+                    'With patient consistency',
+                    'Trusting God to strengthen my faith'
+                ],
+                allowMultiple: true,
+                allowCustomInput: true,
+                sectionId: 'daily_habits',
+                order: 7
+            },
+            {
+                id: 'daily_habits_q8',
+                text: 'What leadership role do you take in your spiritual community?',
+                options: [
+                    'I boldly encourage others to step out in faith',
+                    'I provide guidance and wise direction',
+                    'I focus on supporting and helping others',
+                    'I help people wait patiently on God',
+                    'I inspire others through faithful example'
+                ],
+                allowMultiple: true,
+                allowCustomInput: true,
+                sectionId: 'daily_habits',
+                order: 8
+            },
+            {
+                id: 'daily_habits_q9',
+                text: 'How do you stay resilient in your daily spiritual walk?',
+                options: [
+                    'By courageously facing each challenge',
+                    'Through constant learning and understanding',
+                    'By serving others even when it\'s hard',
+                    'Through patient endurance of difficulties',
+                    'By maintaining unwavering faith and trust'
+                ],
+                allowMultiple: true,
+                allowCustomInput: true,
+                sectionId: 'daily_habits',
+                order: 9
+            },
+            {
+                id: 'daily_habits_q10',
+                text: 'What keeps you humble in your daily spiritual practices?',
+                options: [
+                    'Remembering that my strength comes from God',
+                    'Recognizing how much more I need to learn',
+                    'Focusing on serving rather than being recognized',
+                    'Being patient with my own spiritual growth',
+                    'Acknowledging my complete dependence on faith'
+                ],
+                allowMultiple: true,
+                allowCustomInput: true,
+                sectionId: 'daily_habits',
+                order: 10
+            },
+            {
+                id: 'daily_habits_q11',
+                text: 'How do you overcome challenges in maintaining spiritual disciplines?',
+                options: [
+                    'I boldly recommit to my practices',
+                    'I seek wise strategies and understanding',
+                    'I ask others for help and support',
+                    'I patiently work to rebuild the habit',
+                    'I trust that God will strengthen my resolve'
+                ],
+                allowMultiple: true,
+                allowCustomInput: true,
+                sectionId: 'daily_habits',
+                order: 11
+            },
+            {
+                id: 'daily_habits_q12',
+                text: 'How do you hope to influence others through your daily spiritual habits?',
+                options: [
+                    'By demonstrating courageous commitment',
+                    'By sharing insights I\'ve gained',
+                    'By offering help and support to others',
+                    'By showing the value of patient consistency',
+                    'By inspiring faith through faithful practice'
+                ],
+                allowMultiple: true,
+                allowCustomInput: true,
+                sectionId: 'daily_habits',
+                order: 12
+            },
 
-            // Life Challenges section
+            // Life Challenges section (1-12)
             {
                 id: 'life_challenges_q1',
                 text: 'What type of challenges have shaped you the most?',
@@ -516,8 +786,98 @@ exports.seedQuizData = async () => {
                 sectionId: 'life_challenges',
                 order: 6
             },
+            {
+                id: 'life_challenges_q7',
+                text: 'What gives you courage to face difficult circumstances?',
+                options: [
+                    'My bold determination and inner strength',
+                    'The wisdom I\'ve gained from past experiences',
+                    'The support and help of those who serve me',
+                    'My ability to wait patiently for resolution',
+                    'My faith and trust in God\'s faithful promises'
+                ],
+                allowMultiple: true,
+                allowCustomInput: true,
+                sectionId: 'life_challenges',
+                order: 7
+            },
+            {
+                id: 'life_challenges_q8',
+                text: 'How do you lead others through challenging times?',
+                options: [
+                    'By boldly facing the challenge head-on',
+                    'Through strategic planning and wise guidance',
+                    'By humbly serving and supporting them',
+                    'By encouraging patient endurance',
+                    'By inspiring faith and hope'
+                ],
+                allowMultiple: true,
+                allowCustomInput: true,
+                sectionId: 'life_challenges',
+                order: 8
+            },
+            {
+                id: 'life_challenges_q9',
+                text: 'What helps you maintain resilience during long-term struggles?',
+                options: [
+                    'My courageous spirit and determination',
+                    'Seeking understanding of the situation',
+                    'The help and service of my community',
+                    'My ability to patiently endure hardship',
+                    'My faithful trust in God\'s plan'
+                ],
+                allowMultiple: true,
+                allowCustomInput: true,
+                sectionId: 'life_challenges',
+                order: 9
+            },
+            {
+                id: 'life_challenges_q10',
+                text: 'How do challenges help you grow in humility?',
+                options: [
+                    'They remind me that courage isn\'t self-generated',
+                    'They show me how much I still need to understand',
+                    'They teach me to accept help and service from others',
+                    'They require patient waiting beyond my control',
+                    'They deepen my faith and dependence on God'
+                ],
+                allowMultiple: true,
+                allowCustomInput: true,
+                sectionId: 'life_challenges',
+                order: 10
+            },
+            {
+                id: 'life_challenges_q11',
+                text: 'What helps you overcome feelings of being overwhelmed?',
+                options: [
+                    'Taking bold action to regain control',
+                    'Seeking wise perspective and understanding',
+                    'Accepting help and support from others',
+                    'Learning to wait patiently for clarity',
+                    'Renewing my faith and trust in God'
+                ],
+                allowMultiple: true,
+                allowCustomInput: true,
+                sectionId: 'life_challenges',
+                order: 11
+            },
+            {
+                id: 'life_challenges_q12',
+                text: 'How do you want your response to challenges to influence others?',
+                options: [
+                    'By inspiring courage and boldness',
+                    'By demonstrating wisdom in difficulty',
+                    'By showing the power of mutual support and service',
+                    'By modeling patient perseverance',
+                    'By displaying unwavering faith and trust'
+                ],
+                allowMultiple: true,
+                allowCustomInput: true,
+                sectionId: 'life_challenges',
+                order: 12
+            },
 
-            // Biblical Reflection section
+            // Biblical Reflection section (1-12)
             {
                 id: 'biblical_reflection_q1',
                 text: 'Which Bible stories do you most relate to?',
@@ -609,6 +969,96 @@ exports.seedQuizData = async () => {
                 allowCustomInput: true,
                 sectionId: 'biblical_reflection',
                 order: 6
+            },
+            {
+                id: 'biblical_reflection_q7',
+                text: 'Which biblical theme resonates most with your current season?',
+                options: [
+                    'Stories of courage and bold faith',
+                    'Passages about wisdom and discernment',
+                    'Examples of service and helping others',
+                    'Verses about patient waiting and endurance',
+                    'Promises about faithful trust in God'
+                ],
+                allowMultiple: true,
+                allowCustomInput: true,
+                sectionId: 'biblical_reflection',
+                order: 7
+            },
+            {
+                id: 'biblical_reflection_q8',
+                text: 'How do you hope to lead like biblical leaders?',
+                options: [
+                    'With the courage of Joshua or David',
+                    'With the strategic wisdom of Daniel or Joseph',
+                    'With the servant heart of Jesus or Paul',
+                    'With the patient endurance of Job or Abraham',
+                    'With the faithful trust of Mary or Moses'
+                ],
+                allowMultiple: true,
+                allowCustomInput: true,
+                sectionId: 'biblical_reflection',
+                order: 8
+            },
+            {
+                id: 'biblical_reflection_q9',
+                text: 'What biblical quality do you most want to develop for resilience?',
+                options: [
+                    'The bold courage of Esther or Gideon',
+                    'The wise understanding of Solomon or Daniel',
+                    'The serving heart of Martha or Barnabas',
+                    'The patient endurance of Job or Anna',
+                    'The faithful trust of Abraham or Hannah'
+                ],
+                allowMultiple: true,
+                allowCustomInput: true,
+                sectionId: 'biblical_reflection',
+                order: 9
+            },
+            {
+                id: 'biblical_reflection_q10',
+                text: 'Which biblical example of humility speaks to you most?',
+                options: [
+                    'David acknowledging his courage came from God',
+                    'Solomon asking for wisdom rather than riches',
+                    'Jesus washing the disciples\' feet in service',
+                    'Mary waiting patiently for God\'s promises',
+                    'John the Baptist declaring his faith in Jesus'
+                ],
+                allowMultiple: true,
+                allowCustomInput: true,
+                sectionId: 'biblical_reflection',
+                order: 10
+            },
+            {
+                id: 'biblical_reflection_q11',
+                text: 'What biblical story helps you overcome your struggles?',
+                options: [
+                    'David facing Goliath with courage',
+                    'Daniel seeking God\'s wisdom in crisis',
+                    'Good Samaritan serving someone in need',
+                    'Job patiently enduring through trials',
+                    'Abraham trusting God\'s faithful promises'
+                ],
+                allowMultiple: true,
+                allowCustomInput: true,
+                sectionId: 'biblical_reflection',
+                order: 11
+            },
+            {
+                id: 'biblical_reflection_q12',
+                text: 'How do you want biblical truth to influence others through you?',
+                options: [
+                    'By inspiring bold and courageous faith',
+                    'By sharing wisdom and biblical understanding',
+                    'By demonstrating Christ-like service and help',
+                    'By modeling patient trust in God\'s timing',
+                    'By displaying faithful devotion and hope'
+                ],
+                allowMultiple: true,
+                allowCustomInput: true,
+                sectionId: 'biblical_reflection',
+                order: 12
             }
         ];
 
