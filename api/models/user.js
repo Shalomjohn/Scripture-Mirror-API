@@ -60,6 +60,29 @@ const userSchema = new mongoose.Schema({
       isCorrect: Boolean
     }]
   }],
+  reflections: [{
+    id: {
+      type: String,
+      required: true
+    },
+    title: {
+      type: String,
+      trim: true
+    },
+    content: {
+      type: String,
+      required: true,
+      trim: true
+    },
+    createdAt: {
+      type: Date,
+      default: Date.now
+    },
+    updatedAt: {
+      type: Date,
+      default: Date.now
+    }
+  }],
   createdAt: {
     type: Date,
     default: Date.now
