@@ -14,6 +14,8 @@ const { seedQuizData } = require('./controllers/characterQuizController');
 // Load environment variables
 dotenv.config();
 
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+
 const app = express();
 
 // Middleware
@@ -68,6 +70,29 @@ app.get('/', (req, res, next) => {
         message: 'Welcome to the Scripture Mirror API. Work in progress...'
     })
 })
+
+
+app.post('/api/create-payment-intent', async (req, res) => {
+    try {
+        const { amount, currency, customer_email } = req.body;
+
+        const paymentIntent = await stripe.paymentIntents.create({
+            amount: parseInt(amount),
+            currency: currency,
+            receipt_email: customer_email,
+            metadata: {
+                type: 'donation',
+            },
+        });
+
+        res.json({
+            client_secret: paymentIntent.client_secret,
+        });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
 
 app.use((req, res, next) => {
     const error = new Error('Not found');
