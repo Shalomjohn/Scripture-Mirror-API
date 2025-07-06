@@ -29,7 +29,7 @@ exports.getDailyScripture = async (req, res) => {
         if (!scripture) return res.json({ message: "No scripture for today yet" });
         res.json(scripture);
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        res.status(500).json({ error: error.message }); 
     }
 }
 
