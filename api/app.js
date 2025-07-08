@@ -7,14 +7,13 @@ const accountRoutes = require('./routes/accountRoutes');
 const dailyScriptureRoutes = require('./routes/dailyScriptureRoutes');
 const characterMatchRoutes = require('./routes/characterMatchRoutes');
 const dailyBibleQuizRoutes = require('./routes/dailyBibleQuizRoutes');
+const paymentRoutes = require('./routes/paymentRoutes');
 const reflectionRoutes = require('./routes/reflectionRoutes');
 const { seedCharacters } = require('./helpers/set_characters');
 const { seedQuizData } = require('./controllers/characterQuizController');
 
 // Load environment variables
 dotenv.config();
-
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
 const app = express();
 
@@ -62,6 +61,7 @@ app.use('/api/daily-scripture', dailyScriptureRoutes);
 app.use('/api/character-match', characterMatchRoutes);
 app.use('/api/daily-quiz', dailyBibleQuizRoutes);
 app.use('/api/reflections', reflectionRoutes);
+app.use('/api/payment', paymentRoutes);
 
 
 // Fallback
@@ -70,28 +70,6 @@ app.get('/', (req, res, next) => {
         message: 'Welcome to the Scripture Mirror API. Work in progress...'
     })
 })
-
-
-app.post('/api/create-payment-intent', async (req, res) => {
-    try {
-        const { amount, currency, customer_email } = req.body;
-
-        const paymentIntent = await stripe.paymentIntents.create({
-            amount: parseInt(amount),
-            currency: currency,
-            receipt_email: customer_email,
-            metadata: {
-                type: 'donation',
-            },
-        });
-
-        res.json({
-            client_secret: paymentIntent.client_secret,
-        });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
 
 
 app.use((req, res, next) => {
