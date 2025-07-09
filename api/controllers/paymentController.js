@@ -6,7 +6,11 @@ const paystack = require('paystack-api')(process.env.PAYSTACK_SECRET_KEY);
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
 exports.initializePaystackPayment = async (req, res) => {
-    const { amount, customerEmail } = req.body;
+    let { amount, customerEmail, currency } = req.body;
+
+    if (!currency) {
+        currency = 'NGN'
+    }
 
     try {
         // Generate a reference for the payment
@@ -16,7 +20,8 @@ exports.initializePaystackPayment = async (req, res) => {
         const response = await paystack.transaction.initialize({
             amount: amount * 100, // Paystack expects amount in kobo for NGN
             email: customerEmail,
-            reference: reference
+            currency,
+            reference: reference,
         });
 
         // Return the authorization URL to the client
