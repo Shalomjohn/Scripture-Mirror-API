@@ -11,7 +11,7 @@ const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const paypal = require('@paypal/checkout-server-sdk');
 
 // PayPal environment setup
-const Environment = process.env.NODE_ENV === 'production'
+const Environment = process.env.PAYPAL_ENVIRONMENT === 'live'
     ? paypal.core.LiveEnvironment
     : paypal.core.SandboxEnvironment;
 
