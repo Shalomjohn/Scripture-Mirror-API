@@ -221,6 +221,7 @@ exports.getPaypalOrderDetails = async (req, res) => {
             amount: response.result.purchase_units[0].amount,
             payer: response.result.payer
         });
+
     } catch (error) {
         console.error('PayPal Get Order Error:', error);
         res.status(400).json({ message: error.message });
