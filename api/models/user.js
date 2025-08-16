@@ -95,6 +95,16 @@ const userSchema = new mongoose.Schema({
   bookmarks: [{ type: DailyScriptureSchema }],
 });
 
+
+// Hash the password before saving
+userSchema.pre('findOneAndUpdate', async function (next) {
+  if (this._update.password) {
+    // Hash the password
+    this._update.password = await bcrypt.hash(this._update.password, 10);
+  }
+  next();
+});
+
 // Hash password before saving
 userSchema.pre('save', async function (next) {
   if (!this.isModified('password')) return next();

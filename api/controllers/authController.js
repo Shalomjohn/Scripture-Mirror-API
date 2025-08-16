@@ -98,6 +98,44 @@ const addToEmailList = async (email, code) => {
 }
 
 
+
+exports.resetPassword = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    // Find the user by ID and update the document with the new values
+    const updatedUser = await User.findOneAndUpdate(
+      { email: email }, // Filter
+      { password: password },          // Update
+      { new: true }     // Options - return the updated document
+    );
+
+    if (!updatedUser) {
+      return res.status(404).send(`No user found with email: ${email}`);
+    }
+
+    // Send the updated user back to the client
+    res.json({
+      message: 'Success',
+      user: updatedUser,
+    });
+  } catch (error) {
+    console.error(error);
+    if (error.isOperational) {
+      res.status(error.statusCode).json({
+        status: error.status,
+        message: error.message,
+      });
+    } else {
+      res.status(500).json({
+        status: 'error',
+        message: error.message,
+      });
+    }
+  }
+}
+
+
 exports.sendEmailOTP = async (req, res) => {
   try {
     let code = Math.floor(1000 + Math.random() * 9000);
