@@ -15,6 +15,7 @@ router.post('/reset-password', authController.resetPassword);
 router.use(authenticationMiddleware.authenticate);
 
 router.post('/find-match', authController.findMatch);
+router.get('/bookmarks', authController.getBookmarks);
 router.post('/add-bookmark', authController.addBookmark);
 router.post('/remove-bookmark', authController.removeBookmark);
 

@@ -4,6 +4,7 @@ const { sendOTPEmail } = require('../helpers/email_sender');
 const EmailList = require('../models/email_list');
 const { findBestMatch, calculateProfile, matchNameMeaning } = require('../helpers/character_matcher');
 const { DailyScripture } = require("../models/daily_scripture");
+const { Bookmark } = require('../models/bookmark');
 
 exports.register = async (req, res) => {
   try {
@@ -69,6 +70,8 @@ exports.login = async (req, res) => {
 
     // Remove password from output
     user.password = undefined;
+    var bookmarks = await Bookmark.find({ userId: user._id });
+    user.bookmarks = bookmarks;
 
     res.status(200).json({
       status: 'success',
@@ -277,24 +280,22 @@ exports.findMatch = async (req, res) => {
 
 exports.addBookmark = async (req, res) => {
   try {
-    const { scriptureId } = req.body;
+    const { verse, text } = req.body;
     const user = await User.findById(req.user._id);
-    const dailyScripture = await DailyScripture
-      .findById(scriptureId);;
 
-    if (!dailyScripture) {
-      return res.status(400).json({
-        message: "Incorrect Daily Scritpure ID",
-      });
+    // Check if bookmark already exists
+    var bookmarkExists = await Bookmark.findOne({ verse: verse, userId: user._id });
+    if (bookmarkExists) {
+      console.log(bookmarkExists);
+      bookmarkExists.date = Date.now();
+      await bookmarkExists.save();
+      return res.status(400).json({ message: "This scripture is already bookmarked", bookmarks: user.bookmarks });
     }
 
-    // Add to bookmarks if not already bookmarked
-    if (!user.bookmarks.includes(dailyScripture)) {
-      user.bookmarks.push(dailyScripture);
-      await user.save();
-    }
+    // Create new bookmark
+    const bookmark = await Bookmark.create({ verse, text, userId: user._id });
 
-    res.json({ message: "Scripture bookmarked", bookmarks: user.bookmarks });
+    res.json({ message: "Scripture bookmarked", bookmark });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -302,79 +303,51 @@ exports.addBookmark = async (req, res) => {
 
 exports.removeBookmark = async (req, res) => {
   try {
-    const { scriptureId } = req.body;
-    const user = await User.findById(req.user._id);
-    const dailyScripture = await DailyScripture
-      .findById(scriptureId);
-
-    if (!dailyScripture) {
+    const { bookmarkId } = req.body;
+    const bookmark = await Bookmark.findByIdAndDelete(bookmarkId);
+    if (!bookmark) {
       return res.status(400).json({
-        message: "Incorrect Daily Scritpure ID",
+        message: "Incorrect Bookmark ID",
       });
     }
 
     // Add to bookmarks if not already bookmarked
-    var bookmarks = user.bookmarks;
+    var bookmarks = await Bookmark.find({ userId: req.user._id });
 
-    for (var i = 0; i < bookmarks.length; i++) {
-      if (bookmarks[i]._id.equals(dailyScripture._id)) {
-        bookmarks.splice(i, 1);
-        break;
-      }
-    }
-
-    user.bookmarks = bookmarks;
-    await user.save();
-
-    res.json({ message: "Successfully removed from bookmarks", bookmarks: user.bookmarks });
+    res.json({ message: "Successfully removed from bookmarks", bookmarks });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 
-  exports.addVerseBookmark = async (req, res) => {
-    try {
-      const { verse, text, book, chapter, verseNumber } = req.body;
-      const user = await User.findById(req.user._id);
-
-      // Create a custom verse bookmark (not DailyScripture)
-      const verseBookmark = {
-        _id: new mongoose.Types.ObjectId(),
-        verse: `${book} ${chapter}:${verseNumber}`,
-        text: text,
-        date: new Date(),
-        type: 'verse' // Distinguish from DailyScripture bookmarks
-      };
-
-      // Check if already bookmarked
-      const existingBookmark = user.bookmarks.find(
-        bookmark => bookmark.verse === verseBookmark.verse && bookmark.text === verseBookmark.text
-      );
-
-      if (!existingBookmark) {
-        user.bookmarks.push(verseBookmark);
-        await user.save();
-      }
-
-      res.json({ message: "Verse bookmarked successfully", bookmarks: user.bookmarks });
-    } catch (error) {
-      res.status(500).json({ error: error.message });
-    }
-  };
-
-  exports.removeVerseBookmark = async (req, res) => {
-    try {
-      const { verse, text } = req.body;
-      const user = await User.findById(req.user._id);
-
-      // Remove the specific verse bookmark
-      user.bookmarks = user.bookmarks.filter(
-        bookmark => !(bookmark.verse === verse && bookmark.text === text)
-      );
-
-      await user.save();
-      res.json({ message: "Bookmark removed successfully", bookmarks: user.bookmarks });
-    } catch (error) {
-      res.status(500).json({ error: error.message });
-    }
-  };
 }
+
+// Get bookmarks
+exports.getBookmarks = async (req, res) => {
+  try {
+    var bookmarks = await Bookmark.find({ userId: req.user._id });
+    res.json({ bookmarks });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+}
+
+// Match history methods
+exports.getMatchHistory = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    res.json({ matchHistory: user.matchHistory || [] });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+exports.clearMatchHistory = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    user.matchHistory = [];
+    await user.save();
+    res.json({ message: "Match history cleared successfully" });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};

@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const validator = require('validator');
 const jwt = require('jsonwebtoken');
-const { DailyScriptureSchema } = require('./daily_scripture');
+const { BookmarkSchema } = require('./bookmark');
 
 const userSchema = new mongoose.Schema({
   firstName: {
@@ -101,7 +101,6 @@ const userSchema = new mongoose.Schema({
     default: Date.now
   },
   bibleMatchAssigned: { type: Boolean, default: false },
-  bookmarks: [{ type: DailyScriptureSchema }],
 });
 
 
