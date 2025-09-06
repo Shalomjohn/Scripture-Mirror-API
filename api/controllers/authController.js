@@ -42,48 +42,48 @@ exports.register = async (req, res) => {
 
 
 exports.login = async (req, res) => {
-    try {
-      const { email, password } = req.body;
-  
-      // Check if email and password exist
-      if (!email || !password) {
-        return res.status(400).json({
-          status: 'fail',
-          message: 'Please provide email and password'
-        });
-      }
-  
-      // Find user by email and explicitly select password
-      const user = await User.findOne({ email }).select('+password');
-  
-      // Check if user exists && password is correct
-      if (!user || !(await user.comparePassword(password, user.password))) {
-        return res.status(401).json({
-          status: 'fail',
-          message: 'Incorrect email or password'
-        });
-      }
-  
-      // Generate token
-      const token = user.generateAuthToken();
-  
-      // Remove password from output
-      user.password = undefined;
-  
-      res.status(200).json({
-        status: 'success',
-        token,
-        data: {
-          user
-        }
-      });
-    } catch (error) {
-      res.status(400).json({
+  try {
+    const { email, password } = req.body;
+
+    // Check if email and password exist
+    if (!email || !password) {
+      return res.status(400).json({
         status: 'fail',
-        message: error.message
+        message: 'Please provide email and password'
       });
     }
-  };
+
+    // Find user by email and explicitly select password
+    const user = await User.findOne({ email }).select('+password');
+
+    // Check if user exists && password is correct
+    if (!user || !(await user.comparePassword(password, user.password))) {
+      return res.status(401).json({
+        status: 'fail',
+        message: 'Incorrect email or password'
+      });
+    }
+
+    // Generate token
+    const token = user.generateAuthToken();
+
+    // Remove password from output
+    user.password = undefined;
+
+    res.status(200).json({
+      status: 'success',
+      token,
+      data: {
+        user
+      }
+    });
+  } catch (error) {
+    res.status(400).json({
+      status: 'fail',
+      message: error.message
+    });
+  }
+};
 
 const addToEmailList = async (email, code) => {
 
@@ -246,20 +246,28 @@ exports.findMatch = async (req, res) => {
     };
 
     const user = await User.findById(req.user._id);
-    const quizResponse = await QuizSubmission.create({
-      user: req.user._id,
-      gender,
-      nameMeaning,
-      quizResponses,
-      matchResult
-    });
-    await quizResponse.save();
-
+    
+    // Save to match history before updating current match
+    if (user.bibleMatch) {
+      user.matchHistory.push({
+        date: new Date(),
+        characterName: user.bibleMatch.name,
+        score: user.bibleMatch.score,
+        traits: user.bibleMatch.traits,
+        challenges: user.bibleMatch.challenges,
+        verseReferences: user.bibleMatch.verseReferences,
+        matchResult: user.bibleMatch
+      });
+    }
+    
+    // Keep only last 10 matches
+    if (user.matchHistory.length > 10) {
+      user.matchHistory = user.matchHistory.slice(-10);
+    }
+    
     user.bibleMatch = matchResult.primaryCharacter;
     user.bibleMatchAssigned = true;
     await user.save();
-
-    matchResult
 
     res.json({ matchResult, user });
   } catch (error) {
@@ -322,4 +330,51 @@ exports.removeBookmark = async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
+
+  exports.addVerseBookmark = async (req, res) => {
+    try {
+      const { verse, text, book, chapter, verseNumber } = req.body;
+      const user = await User.findById(req.user._id);
+
+      // Create a custom verse bookmark (not DailyScripture)
+      const verseBookmark = {
+        _id: new mongoose.Types.ObjectId(),
+        verse: `${book} ${chapter}:${verseNumber}`,
+        text: text,
+        date: new Date(),
+        type: 'verse' // Distinguish from DailyScripture bookmarks
+      };
+
+      // Check if already bookmarked
+      const existingBookmark = user.bookmarks.find(
+        bookmark => bookmark.verse === verseBookmark.verse && bookmark.text === verseBookmark.text
+      );
+
+      if (!existingBookmark) {
+        user.bookmarks.push(verseBookmark);
+        await user.save();
+      }
+
+      res.json({ message: "Verse bookmarked successfully", bookmarks: user.bookmarks });
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  };
+
+  exports.removeVerseBookmark = async (req, res) => {
+    try {
+      const { verse, text } = req.body;
+      const user = await User.findById(req.user._id);
+
+      // Remove the specific verse bookmark
+      user.bookmarks = user.bookmarks.filter(
+        bookmark => !(bookmark.verse === verse && bookmark.text === text)
+      );
+
+      await user.save();
+      res.json({ message: "Bookmark removed successfully", bookmarks: user.bookmarks });
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  };
 }

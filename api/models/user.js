@@ -40,6 +40,15 @@ const userSchema = new mongoose.Schema({
     challenges: [String],
     explanation: String
   },
+  matchHistory: [{
+    date: { type: Date, default: Date.now },
+    characterName: String,
+    score: Number,
+    traits: [String],
+    challenges: [String],
+    verseReferences: [String],
+    matchResult: Object
+  }],
   dailyQuizHistory: [{
     date: {
       type: Date,
