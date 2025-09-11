@@ -144,14 +144,20 @@ exports.sendEmailOTP = async (req, res) => {
     let code = Math.floor(1000 + Math.random() * 9000);
     const { email, isSignUp } = req.body;
 
+    const user = await User.findOne({ email });
+
     if (isSignUp == "true" || isSignUp == true) {
-
-      const user = await User.findOne({ email });
-
       if (user) {
         return res.status(400).json({
           status: "error",
           message: "A user already exists with that email address",
+        });
+      }
+    } else {
+      if(!user) {
+        return res.status(400).json({
+          status: "error",
+          message: "No user account exists with that email address",
         });
       }
     }
