@@ -3,14 +3,31 @@ const Session = require('../models/session');
 const Event = require('../models/event');
 const Crash = require('../models/crash');
 const Purchase = require('../models/purchase');
+const geoip = require('geoip-lite');
 
 exports.startSession = async (req, res) => {
   try {
-    const { platform, deviceModel, appVersion, country, region, city, startedAt } = req.body;
+    const { platform, deviceModel, appVersion, country: clientCountry, region: clientRegion, city: clientCity, startedAt } = req.body;
+
+    // Derive geo from IP (prefer this over client-provided locale)
+    const forwarded = (req.headers['x-forwarded-for'] || '').toString();
+    const ip = (forwarded.split(',')[0] || req.ip || '').trim();
+    let lookup = null;
+    try { if (ip) lookup = geoip.lookup(ip); } catch (_) {}
+
+    const country = (lookup && lookup.country) || clientCountry || 'unknown';
+    const region = (lookup && lookup.region) || clientRegion;
+    const city = (lookup && lookup.city) || clientCity;
+
     const session = await Session.create({
       userId: req.user._id,
       startedAt: startedAt ? new Date(startedAt) : new Date(),
-      platform, deviceModel, appVersion, country, region, city,
+      platform,
+      deviceModel,
+      appVersion,
+      country,
+      region,
+      city,
     });
     return res.json({ sessionId: session._id, startedAt: session.startedAt });
   } catch (e) {

@@ -19,6 +19,9 @@ dotenv.config();
 
 const app = express();
 
+// Behind proxies (Vercel/NGINX), trust X-Forwarded-For for accurate req.ip
+app.set('trust proxy', true);
+
 // Middleware
 app.use(morgan('dev'));
 app.use(bodyParser.urlencoded({ extended: false }));
