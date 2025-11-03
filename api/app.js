@@ -13,6 +13,7 @@ const analyticsRoutes = require('./routes/analyticsRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const { seedCharacters } = require('./helpers/set_characters');
 const { seedQuizData } = require('./controllers/characterQuizController');
+const cors = require('cors');
 
 // Load environment variables
 dotenv.config();
@@ -26,6 +27,23 @@ app.set('trust proxy', true);
 app.use(morgan('dev'));
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
+
+// CORS
+const allowedOrigins = [
+    'https://scripture-mirror-admin.vercel.app',
+    'http://localhost:3000',
+    'http://localhost:3001'
+];
+app.use(cors({
+    origin: (origin, cb) => {
+        if (!origin) return cb(null, true);
+        if (allowedOrigins.includes(origin)) return cb(null, true);
+        return cb(null, true);
+    },
+    methods: ['GET','POST','PUT','PATCH','DELETE','OPTIONS'],
+    allowedHeaders: ['Origin','X-Requested-With','Content-Type','Accept','Authorization'],
+}));
+app.options('*', cors());
 
 
 // Database connection
@@ -42,23 +60,6 @@ database.once('open', () => {
     seedCharacters();
     seedQuizData();
 })
-
-app.use((req, res, next) => {
-    res.header('Access-Control-Allow-Origin', '*');
-    res.header(
-        'Access-Control-Allow-Headers',
-        'Origin, X-Requested-With, Content-Type, Accept, Authorization',
-    );
-    if (req.method === 'OPTIONS') {
-        res.header(
-            'Access-Control-Allow-Methods',
-            'PUT, POST, PATCH, DELETE, GET',
-        );
-        return res.status(200).json({})
-    }
-    next();
-});
-
 
 // Routes
 app.use('/api/accounts', accountRoutes);
