@@ -27,10 +27,12 @@ exports.getDailyQuiz = async (req, res) => {
 
     res.json({
       completed: false,
+      quizDate: today.toISOString(),
       questions: questions.map(q => ({
         questionText: q.questionText,
         options: q.options,
-        id: q.id
+        id: q.id,
+        correctAnswer: q.correctAnswer,
       }))
     });
   } catch (error) {
