@@ -27,9 +27,15 @@ function addDays(d, n) {
 
 exports.getOverviewMetrics = async (req, res) => {
   try {
+    // Ensure CORS and caching headers even on success
+    res.set('Access-Control-Allow-Origin', req.headers.origin || '*');
+    res.set('Vary', 'Origin');
+    res.set('Cache-Control', 'no-store');
+
     const now = new Date();
     const end = req.query.end ? endOfDay(parseDate(req.query.end)) : endOfDay(now);
-    const start = req.query.start ? startOfDay(parseDate(req.query.start)) : startOfDay(addDays(end, -29));
+    // Default to a lighter 7-day window to avoid cold-start timeouts on serverless
+    const start = req.query.start ? startOfDay(parseDate(req.query.start)) : startOfDay(addDays(end, -6));
 
     // DAU
     const dau = await Session.aggregate([
