@@ -29,20 +29,12 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
 // CORS
-const allowedOrigins = [
-    'https://scripture-mirror-admin.vercel.app',
-    'http://localhost:3000',
-    'http://localhost:3001'
-];
 app.use(cors({
-    origin: (origin, cb) => {
-        if (!origin) return cb(null, true);
-        if (allowedOrigins.includes(origin)) return cb(null, true);
-        return cb(null, true);
-    },
+    origin: true, // reflect request origin
     methods: ['GET','POST','PUT','PATCH','DELETE','OPTIONS'],
     allowedHeaders: ['Origin','X-Requested-With','Content-Type','Accept','Authorization'],
 }));
+app.use((req, res, next) => { res.header('Vary', 'Origin'); next(); });
 app.options('*', cors());
 
 
