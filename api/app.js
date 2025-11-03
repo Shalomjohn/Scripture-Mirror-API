@@ -9,6 +9,8 @@ const characterMatchRoutes = require('./routes/characterMatchRoutes');
 const dailyBibleQuizRoutes = require('./routes/dailyBibleQuizRoutes');
 const paymentRoutes = require('./routes/paymentRoutes');
 const reflectionRoutes = require('./routes/reflectionRoutes');
+const analyticsRoutes = require('./routes/analyticsRoutes');
+const adminRoutes = require('./routes/adminRoutes');
 const { seedCharacters } = require('./helpers/set_characters');
 const { seedQuizData } = require('./controllers/characterQuizController');
 
@@ -62,6 +64,8 @@ app.use('/api/character-match', characterMatchRoutes);
 app.use('/api/daily-quiz', dailyBibleQuizRoutes);
 app.use('/api/reflections', reflectionRoutes);
 app.use('/api/payment', paymentRoutes);
+app.use('/api/analytics', analyticsRoutes);
+app.use('/api/admin', adminRoutes);
 
 
 // Fallback

@@ -14,6 +14,7 @@ router.post('/reset-password', authController.resetPassword);
 // Protected routes (require authentication)
 router.use(authenticationMiddleware.authenticate);
 
+router.post('/renew-token', authController.renewToken);
 router.post('/find-match', authController.findMatch);
 router.get('/bookmarks', authController.getBookmarks);
 router.post('/add-bookmark', authController.addBookmark);

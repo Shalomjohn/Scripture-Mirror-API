@@ -320,3 +320,91 @@ exports.getCryptoEstimate = async (req, res) => {
         res.status(400).json({ message: error.message });
     }
 }
+
+
+// APPLE PAYMENT
+
+
+exports.applePaymentValidation = async (req, res) => {
+    try {
+    const { receiptData, productId } = req.body;
+
+
+    if (!receiptData) {
+      return res.status(400).json({ 
+        valid: false, 
+        error: 'Receipt data required' 
+      });
+    }
+
+    console.log('Validating receipt...');
+
+    // STEP 1: Try production environment first
+    let response = await validateWithApple(receiptData, PRODUCTION_URL);
+
+    // STEP 2: If it's a sandbox receipt, try sandbox environment
+    if (response.status === 21007) {
+      console.log('Sandbox receipt detected, retrying with sandbox URL...');
+      response = await validateWithApple(receiptData, SANDBOX_URL);
+    }
+
+    // STEP 3: Check validation result
+    if (response.status === 0) {
+      // Status 0 means valid receipt
+      console.log('Receipt validation successful');
+      
+      // Verify the product ID matches
+      const receipt = response.receipt;
+      const inAppPurchases = receipt.in_app || [];
+      
+      const matchingPurchase = inAppPurchases.find(
+        purchase => purchase.product_id === productId
+      );
+
+      if (matchingPurchase) {
+        return res.json({ 
+          valid: true,
+          transactionId: matchingPurchase.transaction_id 
+        });
+      } else {
+        console.log('Product ID not found in receipt');
+        return res.json({ 
+          valid: false, 
+          error: 'Product not found in receipt' 
+        });
+      }
+    } else {
+      console.log('Receipt validation failed with status:', response.status);
+      return res.json({ 
+        valid: false, 
+        error: `Apple validation failed: ${response.status}` 
+      });
+    }
+
+  } catch (error) {
+    console.error('Error validating receipt:', error.message);
+    return res.status(500).json({ 
+      valid: false, 
+      error: 'Server error during validation' 
+    });
+  }
+}
+
+
+async function validateWithApple(receiptData, url) {
+  try {
+    const response = await axios.post(url, {
+      'receipt-data': receiptData,
+      'password': SHARED_SECRET,
+      'exclude-old-transactions': true
+    }, {
+      timeout: 10000,
+      headers: { 'Content-Type': 'application/json' }
+    });
+
+    return response.data;
+  } catch (error) {
+    console.error('Error calling Apple validation:', error.message);
+    throw error;
+  }
+}

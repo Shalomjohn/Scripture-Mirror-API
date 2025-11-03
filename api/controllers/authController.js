@@ -88,6 +88,27 @@ exports.login = async (req, res) => {
   }
 };
 
+exports.renewToken = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    // Remove password from output
+    user.password = undefined;
+    const bookmarks = await Bookmark.find({ userId: user._id });
+    user.bookmarks = bookmarks;
+    const token = user.generateAuthToken();
+    return res.json({
+      status: 'success',
+      token,
+      data: { user }
+    });
+  } catch (error) {
+    return res.status(500).json({ status: 'error', message: error.message });
+  }
+};
+
 const addToEmailList = async (email, code) => {
 
   const savedEmail = await EmailList.findOne({ email });
