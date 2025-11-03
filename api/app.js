@@ -32,7 +32,7 @@ app.use(bodyParser.json());
 const allowedOrigins = [
     'https://scripture-mirror-admin.vercel.app',
     'http://localhost:3000',
-    'http://localhost:3001'
+    'http://localhost:3001' 
 ];
 
 app.use(cors({
