@@ -28,19 +28,31 @@ app.use(morgan('dev'));
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
-// CORS
+// CORS Configuration
 const allowedOrigins = [
     'https://scripture-mirror-admin.vercel.app',
     'http://localhost:3000',
-    'http://localhost:3001' 
+    'http://localhost:3001'
 ];
 
 app.use(cors({
-    origin: allowedOrigins,
+    origin: function(origin, callback) {
+        // Allow requests with no origin (like mobile apps or curl requests)
+        if (!origin) return callback(null, true);
+        
+        if (allowedOrigins.indexOf(origin) !== -1) {
+            callback(null, true);
+        } else {
+            callback(null, true); // For now, allow all origins. Change to callback(new Error('Not allowed by CORS')) to restrict
+        }
+    },
     methods: ['GET','POST','PUT','PATCH','DELETE','OPTIONS'],
     allowedHeaders: ['Origin','X-Requested-With','Content-Type','Accept','Authorization'],
-    credentials: true
+    credentials: true,
+    optionsSuccessStatus: 200
 }));
+
+app.options('*', cors());
 
 
 // Database connection
