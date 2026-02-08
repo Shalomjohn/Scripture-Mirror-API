@@ -11,6 +11,9 @@ router.post('/verify-email-otp', authController.verifyEmailOTP);
 router.post('/reset-password', authController.resetPassword);
 
 
+// router.post('/custom_delete_account_by_email', authController.deleteUserByEmail);
+
+
 // Protected routes (require authentication)
 router.use(authenticationMiddleware.authenticate);
 

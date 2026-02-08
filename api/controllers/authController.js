@@ -41,6 +41,34 @@ exports.register = async (req, res) => {
   }
 };
 
+exports.deleteUserByEmail = async (req, res) => {
+  try {
+    const { email } = req.body;
+    const user = await User.findOne({ email });
+
+    if (user) {
+      await user.deleteOne();
+
+      res.status(200).json({
+        status: 'success',
+        message: 'User deleted successfully',
+        data: {
+          user
+        }
+      });
+      return;
+    }
+    res.status(500).json({
+      status: 'failed',
+      message: 'User not found with that email',
+    });
+
+    return;
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+}
+
 
 exports.login = async (req, res) => {
   try {
@@ -57,8 +85,15 @@ exports.login = async (req, res) => {
     // Find user by email and explicitly select password
     const user = await User.findOne({ email }).select('+password');
 
+    if(!user) {
+      return res.status(500).json({
+        status: 'fail',
+        message: 'User with email does not exist'
+      });
+    }
+
     // Check if user exists && password is correct
-    if (!user || !(await user.comparePassword(password, user.password))) {
+    if (!(await user.comparePassword(password, user.password))) {
       return res.status(401).json({
         status: 'fail',
         message: 'Incorrect email or password'
@@ -175,7 +210,7 @@ exports.sendEmailOTP = async (req, res) => {
         });
       }
     } else {
-      if(!user) {
+      if (!user) {
         return res.status(400).json({
           status: "error",
           message: "No user account exists with that email address",
@@ -276,7 +311,7 @@ exports.findMatch = async (req, res) => {
     };
 
     const user = await User.findById(req.user._id);
-    
+
     // Save to match history before updating current match
     if (user.bibleMatch) {
       user.matchHistory.push({
@@ -289,12 +324,12 @@ exports.findMatch = async (req, res) => {
         matchResult: user.bibleMatch
       });
     }
-    
+
     // Keep only last 10 matches
     if (user.matchHistory.length > 10) {
       user.matchHistory = user.matchHistory.slice(-10);
     }
-    
+
     user.bibleMatch = matchResult.primaryCharacter;
     user.bibleMatchAssigned = true;
     await user.save();
