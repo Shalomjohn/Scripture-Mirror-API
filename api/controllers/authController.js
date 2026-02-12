@@ -351,13 +351,17 @@ exports.addBookmark = async (req, res) => {
       console.log(bookmarkExists);
       bookmarkExists.date = Date.now();
       await bookmarkExists.save();
-      return res.status(400).json({ message: "This scripture is already bookmarked", bookmarks: user.bookmarks });
+      // Return fresh bookmarks from database, not stale user.bookmarks
+      const freshBookmarks = await Bookmark.find({ userId: user._id });
+      return res.status(200).json({ message: "Bookmark updated", bookmarks: freshBookmarks });
     }
 
     // Create new bookmark
     const bookmark = await Bookmark.create({ verse, text, userId: user._id });
-
-    res.json({ message: "Scripture bookmarked", bookmark });
+    
+    // Return fresh bookmarks list
+    const freshBookmarks = await Bookmark.find({ userId: user._id });
+    res.json({ message: "Scripture bookmarked", bookmark, bookmarks: freshBookmarks });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
