@@ -12,4 +12,8 @@ router.post('/', reflectionController.createReflection);
 router.put('/:reflectionId', reflectionController.updateReflection);
 router.delete('/:reflectionId', reflectionController.deleteReflection);
 
+router.post('/folders', reflectionController.createFolder);
+router.put('/folders/:folderId', reflectionController.updateFolder);
+router.delete('/folders/:folderId', reflectionController.deleteFolder);
+
 module.exports = router; 

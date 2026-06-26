@@ -84,6 +84,10 @@ const userSchema = new mongoose.Schema({
       type: String,
       trim: true
     },
+    folderId: {
+      type: String,
+      default: null
+    },
     content: {
       type: String,
       required: true,
@@ -94,6 +98,25 @@ const userSchema = new mongoose.Schema({
       default: Date.now
     },
     updatedAt: {
+      type: Date,
+      default: Date.now
+    }
+  }],
+  reflectionFolders: [{
+    id: {
+      type: String,
+      required: true
+    },
+    name: {
+      type: String,
+      required: true,
+      trim: true
+    },
+    parentId: {
+      type: String,
+      default: null
+    },
+    createdAt: {
       type: Date,
       default: Date.now
     }
