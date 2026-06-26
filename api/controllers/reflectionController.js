@@ -5,7 +5,7 @@ const User = require("../models/user");
 // Get user's reflections
 exports.getReflections = async (req, res) => {
     try {
-        const user = await User.findById(req.user._id).select('reflections');
+        const user = await User.findById(req.user._id).select('reflections reflectionFolders');
 
         const reflections = user.reflections || [];
         const folders = user.reflectionFolders || [];
