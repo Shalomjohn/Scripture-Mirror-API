@@ -417,3 +417,30 @@ exports.clearMatchHistory = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+// Feature Discovery
+exports.discoverFeature = async (req, res) => {
+  try {
+    const { featureKey } = req.body;
+    if (!featureKey) {
+      return res.status(400).json({ status: 'fail', message: 'featureKey is required' });
+    }
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(404).json({ status: 'fail', message: 'User not found' });
+    }
+    
+    if (!user.discoveredFeatures) {
+      user.discoveredFeatures = [];
+    }
+    
+    if (!user.discoveredFeatures.includes(featureKey)) {
+      user.discoveredFeatures.push(featureKey);
+      await user.save();
+    }
+    
+    res.json({ status: 'success', discoveredFeatures: user.discoveredFeatures });
+  } catch (error) {
+    res.status(500).json({ status: 'error', message: error.message });
+  }
+};

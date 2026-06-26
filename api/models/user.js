@@ -107,6 +107,7 @@ const userSchema = new mongoose.Schema({
     default: Date.now
   },
   bibleMatchAssigned: { type: Boolean, default: false },
+  discoveredFeatures: [{ type: String }],
 });
 
 
