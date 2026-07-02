@@ -65,10 +65,10 @@ exports.getOverviewMetrics = async (req, res) => {
       ? parseISODateInZone(req.query.end, tz).endOf('day')
       : nowZ.endOf('day');
 
-    // Default to a lighter 7-day window to avoid cold-start timeouts on serverless
+    // Default to a 30-day window
     const startZ = req.query.start
       ? parseISODateInZone(req.query.start, tz).startOf('day')
-      : endZ.minus({ days: 6 }).startOf('day');
+      : endZ.minus({ days: 29 }).startOf('day');
 
     const start = startZ.toUTC().toJSDate();
     const end = endZ.toUTC().toJSDate();
@@ -160,67 +160,82 @@ exports.getOverviewMetrics = async (req, res) => {
       { $sort: { count: -1 } }
     ]);
 
-    // Revenue & ARPU
+    // Revenue & ARPU grouped by currency
     const revenueAgg = await Purchase.aggregate([
       { $match: { createdAt: { $gte: start, $lte: end } } },
-      { $group: { _id: null, totalRevenue: { $sum: '$amount' }, purchases: { $sum: 1 } } },
-      { $project: { _id: 0, totalRevenue: 1, purchases: 1 } }
+      { $group: { _id: { $ifNull: ['$currency', 'USD'] }, totalRevenue: { $sum: '$amount' }, purchases: { $sum: 1 } } },
+      { $project: { _id: 0, currency: '$_id', totalRevenue: 1, purchases: 1 } }
     ]);
-    const revenue = revenueAgg[0] || { totalRevenue: 0, purchases: 0 };
-    const ARPU = sessionsSummary.activeUsersCount > 0 ? revenue.totalRevenue / sessionsSummary.activeUsersCount : 0;
+    const totalPurchases = revenueAgg.reduce((sum, r) => sum + r.purchases, 0);
+    const revenueByCurrency = revenueAgg.map(r => ({
+      currency: r.currency,
+      totalRevenue: r.totalRevenue,
+      purchases: r.purchases,
+      arpu: sessionsSummary.activeUsersCount > 0 ? r.totalRevenue / sessionsSummary.activeUsersCount : 0
+    }));
 
-    // Retention (approximate): compute average D1/D7/D30 over cohorts in window
-    const dayCount = Math.floor(endZ.diff(startZ, 'days').days) + 1;
-    let rD1 = 0,
-      rD7 = 0,
-      rD30 = 0,
-      cohorts = 0;
+    // Retention: compute overall D1/D7/D30 across all users in the window via single pipeline
+    const retentionAgg = await User.aggregate([
+      { $match: { createdAt: { $gte: start, $lte: end } } },
+      {
+        $lookup: {
+          from: 'sessions', // Mongoose automatically pluralizes 'Session'
+          let: { userId: '$_id', userCreatedAt: '$createdAt' },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    { $eq: ['$userId', '$$userId'] },
+                    { $gte: ['$startedAt', '$$userCreatedAt'] } // only future sessions
+                  ]
+                }
+              }
+            },
+            {
+              $project: {
+                dayDiff: {
+                  $dateDiff: {
+                    startDate: '$$userCreatedAt',
+                    endDate: '$startedAt',
+                    unit: 'day',
+                    timezone: tz
+                  }
+                }
+              }
+            }
+          ],
+          as: 'userSessions'
+        }
+      },
+      {
+        $project: {
+          retainedD1: { $in: [1, '$userSessions.dayDiff'] },
+          retainedD7: { $in: [7, '$userSessions.dayDiff'] },
+          retainedD30: { $in: [30, '$userSessions.dayDiff'] }
+        }
+      },
+      {
+        $group: {
+          _id: null,
+          cohortSize: { $sum: 1 },
+          d1: { $sum: { $cond: ['$retainedD1', 1, 0] } },
+          d7: { $sum: { $cond: ['$retainedD7', 1, 0] } },
+          d30: { $sum: { $cond: ['$retainedD30', 1, 0] } }
+        }
+      }
+    ]);
 
-    for (let i = 0; i < dayCount; i++) {
-      const cohortZ = startZ.plus({ days: i }).startOf('day');
-      if (cohortZ > endZ) break;
-
-      const cohortStart = startOfDayInZone(cohortZ);
-      const cohortEnd = endOfDayInZone(cohortZ);
-
-      const usersOnDay = await User.find({
-        createdAt: { $gte: cohortStart, $lte: cohortEnd },
-      }).select('_id');
-
-      const cohortSize = usersOnDay.length;
-      if (cohortSize === 0) continue;
-      cohorts++;
-      const userIds = usersOnDay.map((u) => u._id);
-
-      const d1Start = startOfDayInZone(cohortZ.plus({ days: 1 }));
-      const d1End = endOfDayInZone(cohortZ.plus({ days: 1 }));
-      const d7Start = startOfDayInZone(cohortZ.plus({ days: 7 }));
-      const d7End = endOfDayInZone(cohortZ.plus({ days: 7 }));
-      const d30Start = startOfDayInZone(cohortZ.plus({ days: 30 }));
-      const d30End = endOfDayInZone(cohortZ.plus({ days: 30 }));
-
-      const d1 = await Session.countDocuments({
-        userId: { $in: userIds },
-        startedAt: { $gte: d1Start, $lte: d1End },
-      });
-      const d7 = await Session.countDocuments({
-        userId: { $in: userIds },
-        startedAt: { $gte: d7Start, $lte: d7End },
-      });
-      const d30 = await Session.countDocuments({
-        userId: { $in: userIds },
-        startedAt: { $gte: d30Start, $lte: d30End },
-      });
-
-      rD1 += d1 > 0 ? (Math.min(d1, cohortSize) / cohortSize) : 0;
-      rD7 += d7 > 0 ? (Math.min(d7, cohortSize) / cohortSize) : 0;
-      rD30 += d30 > 0 ? (Math.min(d30, cohortSize) / cohortSize) : 0;
+    let retention = { d1: 0, d7: 0, d30: 0 };
+    if (retentionAgg.length > 0 && retentionAgg[0].cohortSize > 0) {
+      const agg = retentionAgg[0];
+      const size = agg.cohortSize;
+      retention = {
+        d1: Number(((agg.d1 / size) * 100).toFixed(2)),
+        d7: Number(((agg.d7 / size) * 100).toFixed(2)),
+        d30: Number(((agg.d30 / size) * 100).toFixed(2)),
+      };
     }
-    const retention = cohorts > 0 ? {
-      d1: Number((rD1 / cohorts * 100).toFixed(2)),
-      d7: Number((rD7 / cohorts * 100).toFixed(2)),
-      d30: Number((rD30 / cohorts * 100).toFixed(2)),
-    } : { d1: 0, d7: 0, d30: 0 };
 
     return res.json({
       range: { start, end },
@@ -233,7 +248,7 @@ exports.getOverviewMetrics = async (req, res) => {
       featureUsage,
       geo,
       platforms,
-      revenue: { total: revenue.totalRevenue, purchases: revenue.purchases, arpu: Number(ARPU.toFixed(2)) },
+      revenue: { byCurrency: revenueByCurrency, totalPurchases: totalPurchases },
     });
   } catch (e) {
     return res.status(500).json({ message: e.message });
