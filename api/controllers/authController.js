@@ -342,7 +342,7 @@ exports.findMatch = async (req, res) => {
 
 exports.addBookmark = async (req, res) => {
   try {
-    const { verse, text } = req.body;
+    const { verse, text, translationCode } = req.body;
     const user = await User.findById(req.user._id);
 
     // Check if bookmark already exists
@@ -350,6 +350,7 @@ exports.addBookmark = async (req, res) => {
     if (bookmarkExists) {
       console.log(bookmarkExists);
       bookmarkExists.date = Date.now();
+      if (translationCode) bookmarkExists.translationCode = translationCode;
       await bookmarkExists.save();
       // Return fresh bookmarks from database, not stale user.bookmarks
       const freshBookmarks = await Bookmark.find({ userId: user._id });
@@ -357,7 +358,7 @@ exports.addBookmark = async (req, res) => {
     }
 
     // Create new bookmark
-    const bookmark = await Bookmark.create({ verse, text, userId: user._id });
+    const bookmark = await Bookmark.create({ verse, text, translationCode, userId: user._id });
     
     // Return fresh bookmarks list
     const freshBookmarks = await Bookmark.find({ userId: user._id });

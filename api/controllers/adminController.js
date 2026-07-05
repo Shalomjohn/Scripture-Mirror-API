@@ -144,21 +144,33 @@ exports.getOverviewMetrics = async (req, res) => {
       { $limit: 20 }
     ]);
 
-    // Geo distribution
-    const geo = await Session.aggregate([
+    // Group Geo, Platforms, and Devices in a single facet aggregation for efficiency
+    const sessionDimensions = await Session.aggregate([
       { $match: { startedAt: { $gte: start, $lte: end } } },
-      { $group: { _id: '$country', count: { $sum: 1 } } },
-      { $project: { country: { $ifNull: ['$_id', 'unknown'] }, count: 1, _id: 0 } },
-      { $sort: { count: -1 } }
+      {
+        $facet: {
+          geo: [
+            { $group: { _id: '$country', count: { $sum: 1 } } },
+            { $project: { country: { $ifNull: ['$_id', 'unknown'] }, count: 1, _id: 0 } },
+            { $sort: { count: -1 } }
+          ],
+          platforms: [
+            { $group: { _id: '$platform', count: { $sum: 1 } } },
+            { $project: { platform: { $ifNull: ['$_id', 'unknown'] }, count: 1, _id: 0 } },
+            { $sort: { count: -1 } }
+          ],
+          devices: [
+            { $group: { _id: '$deviceModel', count: { $sum: 1 } } },
+            { $project: { deviceModel: { $ifNull: ['$_id', 'unknown'] }, count: 1, _id: 0 } },
+            { $sort: { count: -1 } },
+            { $limit: 20 }
+          ]
+        }
+      }
     ]);
-
-    // Platform breakdown
-    const platforms = await Session.aggregate([
-      { $match: { startedAt: { $gte: start, $lte: end } } },
-      { $group: { _id: '$platform', count: { $sum: 1 } } },
-      { $project: { platform: { $ifNull: ['$_id', 'unknown'] }, count: 1, _id: 0 } },
-      { $sort: { count: -1 } }
-    ]);
+    const geo = sessionDimensions[0].geo;
+    const platforms = sessionDimensions[0].platforms;
+    const devices = sessionDimensions[0].devices;
 
     // Revenue & ARPU grouped by currency
     const revenueAgg = await Purchase.aggregate([
@@ -248,6 +260,7 @@ exports.getOverviewMetrics = async (req, res) => {
       featureUsage,
       geo,
       platforms,
+      devices,
       revenue: { byCurrency: revenueByCurrency, totalPurchases: totalPurchases },
     });
   } catch (e) {
