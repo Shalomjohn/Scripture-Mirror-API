@@ -29,8 +29,17 @@ exports.setDailyScripture = async (req, res) => {
 
 exports.getDailyScripture = async (req, res) => {
     try {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+
         let scripture = await DailyScripture.findOne({
-            date: new Date().setHours(0, 0, 0, 0),
+            date: {
+                $gte: today,
+                $lt: tomorrow
+            },
             userId: req.user._id,
         });
 
@@ -39,7 +48,7 @@ exports.getDailyScripture = async (req, res) => {
             const randomVerse = getRandomVerse();
 
             scripture = new DailyScripture({
-                date: new Date().setHours(0, 0, 0, 0),
+                date: today,
                 verse: randomVerse.verse,
                 text: randomVerse.text,
                 userId: req.user._id,
