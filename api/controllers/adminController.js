@@ -155,7 +155,8 @@ exports.getOverviewMetrics = async (req, res) => {
             { $sort: { count: -1 } }
           ],
           platforms: [
-            { $group: { _id: '$platform', count: { $sum: 1 } } },
+            { $group: { _id: { platform: '$platform', userId: '$userId' } } },
+            { $group: { _id: '$_id.platform', count: { $sum: 1 } } },
             { $project: { platform: { $ifNull: ['$_id', 'unknown'] }, count: 1, _id: 0 } },
             { $sort: { count: -1 } }
           ],
@@ -169,8 +170,32 @@ exports.getOverviewMetrics = async (req, res) => {
       }
     ]);
     const geo = sessionDimensions[0].geo;
-    const platforms = sessionDimensions[0].platforms;
+    const activePlatformsList = sessionDimensions[0].platforms;
     const devices = sessionDimensions[0].devices;
+
+    // Calculate all-time users per platform
+    const allTimePlatforms = await Session.aggregate([
+      { $group: { _id: { platform: '$platform', userId: '$userId' } } },
+      { $group: { _id: '$_id.platform', total: { $sum: 1 } } }
+    ]);
+    
+    const allTimeMap = {};
+    allTimePlatforms.forEach(p => {
+      const plat = p._id || 'unknown';
+      allTimeMap[plat] = (allTimeMap[plat] || 0) + p.total;
+    });
+
+    const activeMap = {};
+    activePlatformsList.forEach(p => {
+      activeMap[p.platform] = p.count;
+    });
+
+    const platforms = Object.keys(allTimeMap).map(plat => {
+      const active = activeMap[plat] || 0;
+      const total = allTimeMap[plat];
+      const inactive = total - active;
+      return { platform: plat, active, inactive, total };
+    }).sort((a, b) => b.total - a.total);
 
     // Revenue & ARPU grouped by currency
     const revenueAgg = await Purchase.aggregate([
@@ -249,12 +274,16 @@ exports.getOverviewMetrics = async (req, res) => {
       };
     }
 
+    const allTimeUsersAgg = await User.aggregate([{ $count: 'total' }]);
+    const allTimeUsersCount = allTimeUsersAgg[0]?.total || 0;
+
     return res.json({
       range: { start, end },
       dau,
       wau,
       signups,
-      sessions: { total: sessionsSummary.total, avgDurationMs: Math.round(sessionsSummary.avgDurationMs || 0) },
+      allTimeUsersCount,
+      sessions: { total: sessionsSummary.total, avgDurationMs: Math.round(sessionsSummary.avgDurationMs || 0), activeUsersCount: sessionsSummary.activeUsersCount },
       retention,
       crashes: { total: crashCount, ratePerThousandSessions: Number(crashRatePerK.toFixed(2)) },
       featureUsage,
