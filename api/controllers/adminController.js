@@ -353,3 +353,81 @@ exports.deleteAnalytics = async (req, res) => {
     return res.status(500).json({ message: e.message });
   }
 };
+
+exports.getUsersByCategory = async (req, res) => {
+  try {
+    const { category } = req.params;
+    let { start, end, tz } = req.query;
+
+    const limit = 500; // Hard limit to prevent massive payload
+
+    let startDate, endDate;
+    if (start && end) {
+      const zone = safeZone(tz);
+      const dtStart = parseISODateInZone(start, zone);
+      const dtEnd = parseISODateInZone(end, zone);
+      startDate = startOfDayInZone(dtStart);
+      endDate = endOfDayInZone(dtEnd);
+    } else {
+      const now = new Date();
+      startDate = startOfDay(addDays(now, -30));
+      endDate = endOfDay(now);
+    }
+
+    let users = [];
+
+    if (category === 'signups') {
+      users = await User.find({ createdAt: { $gte: startDate, $lte: endDate } })
+        .select('firstName lastName email createdAt')
+        .sort({ createdAt: -1 })
+        .limit(limit)
+        .lean();
+    } else if (category === 'active' || category === 'sessions') {
+      // Find users who had a session in this date range
+      const activeUserIds = await Session.distinct('userId', { startedAt: { $gte: startDate, $lte: endDate } });
+      users = await User.find({ _id: { $in: activeUserIds } })
+        .select('firstName lastName email createdAt')
+        .sort({ createdAt: -1 })
+        .limit(limit)
+        .lean();
+    } else if (category === 'retained') {
+      // Same logic as D7 retention, but fetching the users
+      const cohortUsers = await User.find({ createdAt: { $gte: startDate, $lte: endDate } })
+        .select('_id firstName lastName email createdAt')
+        .lean();
+      
+      const retainedUsers = [];
+      for (const u of cohortUsers) {
+        const uCreated = new Date(u.createdAt);
+        uCreated.setUTCHours(0, 0, 0, 0);
+        
+        const sessionsForUser = await Session.find({ userId: u._id, startedAt: { $gte: uCreated } }).select('startedAt').lean();
+        let isRetained = false;
+        
+        for (const s of sessionsForUser) {
+          const sDate = new Date(s.startedAt);
+          sDate.setUTCHours(0, 0, 0, 0);
+          const diffTime = sDate - uCreated;
+          const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+          if (diffDays === 7) {
+            isRetained = true;
+            break;
+          }
+        }
+        
+        if (isRetained) {
+          retainedUsers.push(u);
+        }
+      }
+      users = retainedUsers.slice(0, limit);
+    } else {
+      return res.status(400).json({ message: 'Invalid category' });
+    }
+
+    return res.json({ users });
+  } catch (e) {
+    console.error('getUsersByCategory error:', e);
+    return res.status(500).json({ message: e.message });
+  }
+};
+

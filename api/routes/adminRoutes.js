@@ -35,6 +35,7 @@ router.post('/users/promote', async (req, res) => {
 }); 
 
 router.get('/metrics/overview', requireAdmin, adminController.getOverviewMetrics);
+router.get('/metrics/users/:category', requireAdmin, adminController.getUsersByCategory);
 router.delete('/analytics', requireAdmin, adminController.deleteAnalytics);
 
 module.exports = router;
